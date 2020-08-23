@@ -10,9 +10,9 @@ using Newtonsoft.Json;
 
 namespace functions
 {
-    public static class functions
+    public static class FetchImage
     {
-        [FunctionName("functions")]
+        [FunctionName("FetchImage")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
