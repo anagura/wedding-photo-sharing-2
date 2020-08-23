@@ -158,7 +158,7 @@ namespace WeddingPhotoSharing
 			}
 			catch (Exception e)
             {
-				log.LogError($"Exception occured. exception: {nameof(e)} message: {e.Message}");
+				log.LogError($"Exception occured. Exception: { e } StackTrace: {e.StackTrace }");
 				throw;
             }
 		}
