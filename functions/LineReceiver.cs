@@ -53,105 +53,114 @@ namespace WeddingPhotoSharing
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestMessage req,
             ILogger log)
 		{
-			var webhookRequest = new LineWebhookRequest(ChannelSecret, req);
-			var valid = await webhookRequest.IsValid();
-			if (!valid)
-			{
-				log.LogError("request is invalid.");
-				return null;
-			}
-
-			lineMessagingClient = new LineMessagingClient(LineAccessToken);
-
-			storageCredentials = new StorageCredentials(StorageAccountName, StorageAccountKey);
-			storageAccount = new CloudStorageAccount(storageCredentials, true);
-			blobClient = storageAccount.CreateCloudBlobClient();
-			container = blobClient.GetContainerReference(LineMediaContainerName);
-			adultContainer = blobClient.GetContainerReference(LineAdultMediaContainerName);
-
-			tableClient = storageAccount.CreateCloudTableClient();
-			table = tableClient.GetTableReference(LineMessageTableName);
-			await table.CreateIfNotExistsAsync();
-
-			var message = await webhookRequest.GetContentJson();
-			log.LogInformation(message);
-			List<LineResult> lineResults = new List<LineResult>();
-
-			LineWebhookContent content = await webhookRequest.GetContent();
-			foreach (LineWebhookContent.Event eventMessage in content.Events)
-			{
-				if (eventMessage.Type == WebhookRequestEventType.Message
-					&& eventMessage.Source.Type == WebhookRequestSourceType.User)
+            try
+            {
+				var webhookRequest = new LineWebhookRequest(ChannelSecret, req);
+				var valid = await webhookRequest.IsValid();
+				if (!valid)
 				{
-					string userId = eventMessage.Source.UserId;
-					var profile = await lineMessagingClient.GetProfile(userId);
-					var Name = profile.DisplayName;
-					var ext = eventMessage.Message.Type == MessageType.Video ? ".mpg" : ".jpg";
-					var fileName = eventMessage.Message.Id.ToString() + ext;
-					string suffix = "";
+					log.LogError("request is invalid.");
+					return null;
+				}
 
-					LineResult result = new LineResult()
+				lineMessagingClient = new LineMessagingClient(LineAccessToken);
+
+				storageCredentials = new StorageCredentials(StorageAccountName, StorageAccountKey);
+				storageAccount = new CloudStorageAccount(storageCredentials, true);
+				blobClient = storageAccount.CreateCloudBlobClient();
+				container = blobClient.GetContainerReference(LineMediaContainerName);
+				adultContainer = blobClient.GetContainerReference(LineAdultMediaContainerName);
+
+				tableClient = storageAccount.CreateCloudTableClient();
+				table = tableClient.GetTableReference(LineMessageTableName);
+				await table.CreateIfNotExistsAsync();
+
+				var message = await webhookRequest.GetContentJson();
+				log.LogInformation(message);
+				List<LineResult> lineResults = new List<LineResult>();
+
+				LineWebhookContent content = await webhookRequest.GetContent();
+				foreach (LineWebhookContent.Event eventMessage in content.Events)
+				{
+					if (eventMessage.Type == WebhookRequestEventType.Message
+						&& eventMessage.Source.Type == WebhookRequestSourceType.User)
 					{
-						Id = eventMessage.Message.Id,
-						Name = Name,
-						MessageType = (int)eventMessage.Message.Type,
-					};
-					if (eventMessage.Message.Type == MessageType.Text)
-					{
-						string textMessage = eventMessage.Message.Text;
-						if (textMessage.Length > MessageLength)
+						string userId = eventMessage.Source.UserId;
+						var profile = await lineMessagingClient.GetProfile(userId);
+						var Name = profile.DisplayName;
+						var ext = eventMessage.Message.Type == MessageType.Video ? ".mpg" : ".jpg";
+						var fileName = eventMessage.Message.Id.ToString() + ext;
+						string suffix = "";
+
+						LineResult result = new LineResult()
 						{
-							textMessage = textMessage.Substring(0, MessageLength) + "...";
-							suffix = string.Format("\nメッセージが長いため、途中までしか表示されません。{0}文字以内で入力をお願いします。", MessageLength);
+							Id = eventMessage.Message.Id,
+							Name = Name,
+							MessageType = (int)eventMessage.Message.Type,
+						};
+						if (eventMessage.Message.Type == MessageType.Text)
+						{
+							string textMessage = eventMessage.Message.Text;
+							if (textMessage.Length > MessageLength)
+							{
+								textMessage = textMessage.Substring(0, MessageLength) + "...";
+								suffix = string.Format("\nメッセージが長いため、途中までしか表示されません。{0}文字以内で入力をお願いします。", MessageLength);
+							}
+
+							// ストレージテーブルに格納
+							await UploadMessageToStorageTable(eventMessage.Message.Id, Name, eventMessage.Message.Text);
+
+							result.Message = textMessage;
 						}
-
-						// ストレージテーブルに格納
-						await UploadMessageToStorageTable(eventMessage.Message.Id, Name, eventMessage.Message.Text);
-
-						result.Message = textMessage;
-					}
-					else if (eventMessage.Message.Type == MessageType.Image)
-					{
-						// LINEから画像を取得
-						var lineResult = lineMessagingClient.GetMessageContent(eventMessage.Message.Id.ToString());
-						if (lineResult.Result == null || !lineResult.IsCompleted || lineResult.IsFaulted)
+						else if (eventMessage.Message.Type == MessageType.Image)
 						{
-							throw new Exception("GetMessageContent is null");
+							// LINEから画像を取得
+							var lineResult = lineMessagingClient.GetMessageContent(eventMessage.Message.Id.ToString());
+							if (lineResult.Result == null || !lineResult.IsCompleted || lineResult.IsFaulted)
+							{
+								throw new Exception("GetMessageContent is null");
+							}
+
+							// エロ画像チェック
+							string vision_result = await MakeAnalysisRequest(lineResult.Result, log);
+
+							var vision = JsonConvert.DeserializeObject<VisionAdultResult>(vision_result);
+							if (vision.Adult.isAdultContent)
+							{
+								// アダルト用ストレージにアップロード
+								await UploadImageToStorage(fileName, lineResult.Result, true);
+
+								vision_result += ", imageUrl:" + GetUrl(fileName, true);
+								await ReplyToLine(eventMessage.ReplyToken, string.Format("ちょっと嫌な予感がするので、この写真は却下します。\nアダルト画像確率:{0}%", Math.Round(vision.Adult.adultScore * 100, 0, MidpointRounding.AwayFromZero)), log);
+								continue;
+							}
+
+							// 画像をストレージにアップロード
+							await UploadImageToStorage(fileName, lineResult.Result);
+
+							result.ImageUrl = GetUrl(fileName);
 						}
-
-						// エロ画像チェック
-						string vision_result = await MakeAnalysisRequest(lineResult.Result, log);
-
-						var vision = JsonConvert.DeserializeObject<VisionAdultResult>(vision_result);
-						if (vision.Adult.isAdultContent)
+						else
 						{
-							// アダルト用ストレージにアップロード
-							await UploadImageToStorage(fileName, lineResult.Result, true);
-
-							vision_result += ", imageUrl:" + GetUrl(fileName, true);
-							await ReplyToLine(eventMessage.ReplyToken, string.Format("ちょっと嫌な予感がするので、この写真は却下します。\nアダルト画像確率:{0}%", Math.Round(vision.Adult.adultScore * 100, 0, MidpointRounding.AwayFromZero)), log);
+							log.LogError("not supported message type:" + eventMessage.Message.Type);
+							await ReplyToLine(eventMessage.ReplyToken, "未対応のメッセージです。テキストか画像を投稿してください", log);
 							continue;
 						}
 
-						// 画像をストレージにアップロード
-						await UploadImageToStorage(fileName, lineResult.Result);
+						await ReplyToLine(eventMessage.ReplyToken, "投稿を受け付けました。表示されるまで少々お待ちください。" + suffix, log);
 
-						result.ImageUrl = GetUrl(fileName);
+						lineResults.Add(result);
 					}
-					else
-					{
-						log.LogError("not supported message type:" + eventMessage.Message.Type);
-						await ReplyToLine(eventMessage.ReplyToken, "未対応のメッセージです。テキストか画像を投稿してください", log);
-						continue;
-					}
-
-					await ReplyToLine(eventMessage.ReplyToken, "投稿を受け付けました。表示されるまで少々お待ちください。" + suffix, log);
-
-					lineResults.Add(result);
 				}
-			}
 
-			return new OkObjectResult(lineResults.Any() ? JsonConvert.SerializeObject(lineResults) : string.Empty);
+				return new OkObjectResult(lineResults.Any() ? JsonConvert.SerializeObject(lineResults) : string.Empty);
+
+			}
+			catch (Exception e)
+            {
+				log.LogError($"Exception occured. Exception: { e } StackTrace: {e.StackTrace }");
+				throw;
+            }
 		}
 
 		private static async Task<string> MakeAnalysisRequest(byte[] byteData, ILogger log)
