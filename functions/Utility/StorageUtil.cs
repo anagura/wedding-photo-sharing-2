@@ -11,12 +11,12 @@ namespace functions.Utility
     {
         private static StorageUtil _instance;
 
-        private static readonly string _accountName = AppSettings.Configuration["AzureStorageAccountName"];
-        private static readonly string _accountKey = AppSettings.Configuration["AzureStorageAccountKey"];
-        private static readonly string _imageContainer = AppSettings.Configuration["AzureStorageImageContainerName"];
+        private static readonly string _accountName = AppSettings.Configuration["StorageAccountName"];
+        private static readonly string _accountKey = AppSettings.Configuration["StorageAccountKey"];
+        private static readonly string _imageContainer = AppSettings.Configuration["LineMediaContainerName"];
         private readonly CloudBlobContainer _container;
 
-        private static readonly string _domain = AppSettings.Configuration["AzureStorageImageDomainName"];
+        private static readonly string _domain = AppSettings.Configuration["StorageImageDomainName"];
 
         private StorageUtil()
         {
