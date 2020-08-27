@@ -22,5 +22,6 @@
   <ItemGroup>
     <Folder Include="Utility\" />
     <Folder Include="Configration\" />
+    <Folder Include="Model\" />
   </ItemGroup>
 </Project>
