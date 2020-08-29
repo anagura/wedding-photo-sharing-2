@@ -1,19 +1,20 @@
-﻿using LineMessaging;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.Table;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using LineMessaging;
+using Newtonsoft.Json;
+using Microsoft.Azure.WebJobs;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.Table;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.WebJobs.Extensions.Http;
+using functions.Model;
 
 namespace WeddingPhotoSharing
 {
@@ -247,24 +248,6 @@ namespace WeddingPhotoSharing
 
             await blockBlob.UploadFromByteArrayAsync(image, 0, image.Length);
         }
-
-        public class LineMessageEntity : TableEntity
-        {
-            public LineMessageEntity(string name, string id)
-            {
-                this.PartitionKey = name;
-                this.RowKey = id;
-            }
-
-            public LineMessageEntity() { }
-
-            public long Id { get; set; }
-
-            public string Name { get; set; }
-
-            public string Message { get; set; }
-        }
-
 
         public class VisionAdultResult
         {
