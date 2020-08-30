@@ -20,5 +20,10 @@
   <ItemGroup>
     <Folder Include="wwwroot\js\" />
     <Folder Include="wwwroot\scss\" />
+    <Folder Include="Components\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Remove="wwwroot\sample-data\hinata.jpg" />
+    <Content Remove="wwwroot\sample-data\hinata.jpg" />
   </ItemGroup>
 </Project>

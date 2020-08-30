@@ -2,6 +2,9 @@
 
 @inject IJSRuntime JSRuntime
 
+@using viewer.Components
+
+
 <!--
 Please note, that you can apply .m--global-blending-active to .fnc-slider
 to enable blend-mode for all background-images or apply .m--blend-bg-active
@@ -12,82 +15,10 @@ because it requires specific images, where more than 50% of bg is transparent or
     <!-- slider start -->
     <div class="fnc-slider example-slider">
         <div class="fnc-slider__slides">
-            <!-- slide start -->
-            <div class="fnc-slide m--blend-green m--active-slide">
-                <div class="fnc-slide__inner">
-                    <div class="fnc-slide__mask">
-                        <div class="fnc-slide__mask-inner"></div>
-                    </div>
-                    <div class="fnc-slide__content">
-                        <h2 class="fnc-slide__heading">
-                            <div class="fnc-slide__heading-line">
-                                <span>Black</span>
-                            </div>
-                            <div class="fnc-slide__heading-line">
-                                <span>Widow</span>
-                            </div>
-                        </h2>
-                    </div>
-                </div>
-            </div>
-            <!-- slide end -->
-            <!-- slide start -->
-            <div class="fnc-slide m--blend-dark">
-                <div class="fnc-slide__inner">
-                    <div class="fnc-slide__mask">
-                        <div class="fnc-slide__mask-inner"></div>
-                    </div>
-                    <div class="fnc-slide__content">
-                        <h2 class="fnc-slide__heading">
-                            <div class="fnc-slide__heading-line">
-                                <span>Captain</span>
-                            </div>
-                            <div class="fnc-slide__heading-line">
-                                <span>America</span>
-                            </div>
-                        </h2>
-                    </div>
-                </div>
-            </div>
-            <!-- slide end -->
-            <!-- slide start -->
-            <div class="fnc-slide m--blend-red">
-                <div class="fnc-slide__inner">
-                    <div class="fnc-slide__mask">
-                        <div class="fnc-slide__mask-inner"></div>
-                    </div>
-                    <div class="fnc-slide__content">
-                        <h2 class="fnc-slide__heading">
-                            <div class="fnc-slide__heading-line">
-                                <span>Iron</span>
-                            </div>
-                            <div class="fnc-slide__heading-line">
-                                <span>Man</span>
-                            </div>
-                        </h2>
-                    </div>
-                </div>
-            </div>
-            <!-- slide end -->
-            <!-- slide start -->
-            <div class="fnc-slide m--blend-blue">
-                <div class="fnc-slide__inner">
-                    <div class="fnc-slide__mask">
-                        <div class="fnc-slide__mask-inner"></div>
-                    </div>
-                    <div class="fnc-slide__content">
-                        <h2 class="fnc-slide__heading">
-                            <div class="fnc-slide__heading-line">
-                                <span>Thor</span>
-                            </div>
-                            <div class="fnc-slide__heading-line">
-                                <span>Just Thor</span>
-                            </div>
-                        </h2>
-                    </div>
-                </div>
-            </div>
-            <!-- slide end -->
+            <Slide isActive="true" blendType="viewer.Components.Slide.BlendType.Green" name="tk and nancy" />
+            <Slide isActive="false" blendType="viewer.Components.Slide.BlendType.Dark" name="aeru" />
+            <Slide isActive="false" blendType="viewer.Components.Slide.BlendType.Red" name="hinata" />
+            <Slide isActive="false" blendType="viewer.Components.Slide.BlendType.Blue" name="thor" />
         </div>
         <nav class="fnc-nav">
             <div class="fnc-nav__bgs">
