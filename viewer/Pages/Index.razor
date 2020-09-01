@@ -1,6 +1,7 @@
 ﻿@page "/"
 
 @inject IJSRuntime JSRuntime
+@inject HttpClient Http
 
 @using viewer.Components
 
@@ -11,78 +12,117 @@ to enable blend-mode for all background-images or apply .m--blend-bg-active
 to some specific slides (.fnc-slide). It's disabled by default in this demo,
 because it requires specific images, where more than 50% of bg is transparent or monotone
 -->
-<div class="demo-cont">
-    <!-- slider start -->
-    <div class="fnc-slider example-slider">
-        <div class="fnc-slider__slides">
-            <Slide isActive="true" blendType="viewer.Components.Slide.BlendType.Green" name="tk and nancy" />
-            <Slide isActive="false" blendType="viewer.Components.Slide.BlendType.Dark" name="aeru" />
-            <Slide isActive="false" blendType="viewer.Components.Slide.BlendType.Red" name="hinata" />
-            <Slide isActive="false" blendType="viewer.Components.Slide.BlendType.Blue" name="thor" />
-        </div>
-        <nav class="fnc-nav">
-            <div class="fnc-nav__bgs">
-                <div class="fnc-nav__bg m--navbg-green m--active-nav-bg"></div>
-                <div class="fnc-nav__bg m--navbg-dark"></div>
-                <div class="fnc-nav__bg m--navbg-red"></div>
-                <div class="fnc-nav__bg m--navbg-blue"></div>
+@if (images == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="demo-cont">
+        <!-- slider start -->
+        <div class="fnc-slider example-slider">
+            <div class="fnc-slider__slides">
+                @foreach (var image in images)
+                {
+                    <h1>@image.IsActive</h1>
+                    <Slide isActive="@image.IsActive" blendType="@image.BlendType" name="@image.Name" />
+                }
             </div>
-            <div class="fnc-nav__controls">
-                <button class="fnc-nav__control">
-                    Black Widow
-                    <span class="fnc-nav__control-progress"></span>
-                </button>
-                <button class="fnc-nav__control">
-                    Captain America
-                    <span class="fnc-nav__control-progress"></span>
-                </button>
-                <button class="fnc-nav__control">
-                    Iron Man
-                    <span class="fnc-nav__control-progress"></span>
-                </button>
-                <button class="fnc-nav__control">
-                    Thor
-                    <span class="fnc-nav__control-progress"></span>
-                </button>
-            </div>
-        </nav>
-    </div>
-    <!-- slider end -->
-    <div class="demo-cont__credits">
-        <div class="demo-cont__credits-close"></div>
-        <h2 class="demo-cont__credits-heading">Made by</h2>
-        <img src="//s3-us-west-2.amazonaws.com/s.cdpn.io/142996/profile/profile-512_5.jpg" alt="" class="demo-cont__credits-img" />
-        <h3 class="demo-cont__credits-name">Nikolay Talanov</h3>
-        <a href="https://codepen.io/suez/" target="_blank" class="demo-cont__credits-link">My codepen</a>
-        <a href="https://twitter.com/NikolayTalanov" target="_blank" class="demo-cont__credits-link">My twitter</a>
-        <h2 class="demo-cont__credits-heading">Based on</h2>
-        <a href="https://dribbble.com/shots/2375246-Fashion-Butique-slider-animation" target="_blank" class="demo-cont__credits-link">Concept by Kreativa Studio</a>
-        <h4 class="demo-cont__credits-blend">Global Blend Mode</h4>
-        <div class="colorful-switch">
-            <input type="checkbox" class="colorful-switch__checkbox js-activate-global-blending" id="colorful-switch-cb" />
-            <label class="colorful-switch__label" for="colorful-switch-cb">
-                <span class="colorful-switch__bg"></span>
-                <span class="colorful-switch__dot"></span>
-                <span class="colorful-switch__on">
-                    <span class="colorful-switch__on__inner"></span>
-                </span>
-                <span class="colorful-switch__off"></span>
-            </label>
+            <nav class="fnc-nav">
+                <div class="fnc-nav__bgs">
+                    @foreach (var image in images)
+                    {
+                        <div class="fnc-nav__bg @bgBlendType(@image.BlendType) @bgIsActive(@image.IsActive)"></div>
+                    }
+                </div>
+                <div class="fnc-nav__controls">
+                    @foreach (var image in images)
+                    {
+                    <button class="fnc-nav__control">
+                        @image.Name
+                        <span class="fnc-nav__control-progress"></span>
+                    </button>
+                    }
+                </div>
+            </nav>
         </div>
+        <!-- slider end -->
     </div>
-</div>
+}
 
 @code {
+    private bool initialized;
+    private ImageData[] images;
+
+    private string bgBlendType(Slide.BlendType blendType)
+    {
+        string result = "";
+        switch (blendType)
+        {
+            case Slide.BlendType.Green:
+                result = "m--navbg-green";
+                break;
+            case Slide.BlendType.Dark:
+                result = "m--navbg-dark";
+                break;
+            case Slide.BlendType.Red:
+                result = "m--navbg-red";
+                break;
+            case Slide.BlendType.Blue:
+                result = "m--navbg-blue";
+                break;
+        }
+        return result;
+    }
+    private string bgIsActive(bool isActive)
+    {
+        return isActive ? "m--active-nav-bg" : "";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        images = await Http.GetFromJsonAsync<ImageData[]>("sample-data/slide_data.json");
+    }
+
     public async Task TriggerJsPrompt()
     {
         await JSRuntime.InvokeVoidAsync(
                 "initialize_slider", new object[] { });
     }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (!firstRender && images != null && !initialized)
         {
             await TriggerJsPrompt();
+            initialized = true;
         }
+    }
+
+    public class ImageData
+    {
+        public bool IsActive { get; set; }
+        public string Name { get; set; }
+        public string Image { get; set; }
+        public string BlendTypeString { get; set; }
+        public Slide.BlendType BlendType { get {
+                Slide.BlendType result = Slide.BlendType.Green;
+                switch (BlendTypeString)
+                {
+                    case "Green":
+                        result = Slide.BlendType.Green;
+                        break;
+                    case "Dark":
+                        result = Slide.BlendType.Dark;
+                        break;
+                    case "Red":
+                        result = Slide.BlendType.Red;
+                        break;
+                    case "Blue":
+                        result = Slide.BlendType.Blue;
+                        break;
+                }
+                return result;
+            } }
     }
 }

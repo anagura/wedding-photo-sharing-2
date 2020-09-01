@@ -32,7 +32,8 @@
     [Parameter]
     public string name { set; get; }
 
-    private string _brendType { get {
+    private string _brendType {
+        get {
             string result = "";
             switch (blendType)
             {

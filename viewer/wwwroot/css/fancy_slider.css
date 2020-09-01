@@ -625,7 +625,7 @@ body {
 
 .example-slider .fnc-slide-4 .fnc-slide__inner,
 .example-slider .fnc-slide-4 .fnc-slide__mask-inner {
-    background-image: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/142996/thor.jpg");
+    background-image: url("/sample-data/riki.jpg");
 }
 
     .example-slider .fnc-slide-4 .fnc-slide__inner:before {
