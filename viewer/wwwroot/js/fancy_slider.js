@@ -5,6 +5,7 @@
         var elements = context.querySelectorAll(selector);
         return [].slice.call(elements);
     };
+    var numOfSlides = 0;
 
     function _fncSliderInit($slider, options) {
         var prefix = ".fnc-";
@@ -16,7 +17,7 @@
         var $controlsBgs = $$(prefix + "nav__bg", $slider);
         var $progressAS = $$(prefix + "nav__control-progress", $slider);
 
-        var numOfSlides = $slides.length;
+        numOfSlides = $slides.length;
         var curSlide = 1;
         var sliding = false;
         var slidingAT = +parseFloat(getComputedStyle($slidesCont)["transition-duration"]) * 1000;
@@ -33,16 +34,25 @@
 
         function setIDs() {
             $slides.forEach(function ($slide, index) {
-                $slide.classList.add("fnc-slide-" + (index + 1));
+                const key = "fnc-slide-" + (index + 1);
+                if (!$slide.classList.contains(key)) {
+                    $slide.classList.add(key);
+                }
             });
 
             $controls.forEach(function ($control, index) {
                 $control.setAttribute("data-slide", index + 1);
-                $control.classList.add("fnc-nav__control-" + (index + 1));
+                const key = "fnc-nav__control-" + (index + 1);
+                if (!$control.classList.contains(key)) {
+                    $control.classList.add(key);
+                }
             });
 
             $controlsBgs.forEach(function ($bg, index) {
-                $bg.classList.add("fnc-nav__bg-" + (index + 1));
+                const key = "fnc-nav__bg-" + (index + 1);
+                if (!$bg.classList.contains(key)) {
+                    $bg.classList.add(key);
+                }
             });
         };
 
@@ -95,8 +105,6 @@
             setTimeout(afterSlidingHandler, slidingAT + slidingDelay);
         };
 
-
-
         function controlClickHandler() {
             if (sliding) return;
             if (this.classList.contains("m--active-control")) return;
@@ -111,6 +119,7 @@
         };
 
         $controls.forEach(function ($control) {
+            $control.removeEventListener("click", controlClickHandler);
             $control.addEventListener("click", controlClickHandler);
         });
 
@@ -125,24 +134,29 @@
             }, delay);
         };
 
-        if (options.autoSliding || +options.autoSlidingDelay > 0) {
-            if (options.autoSliding === false) return;
+        if (options.isInitialize) {
+            if (options.autoSliding || +options.autoSlidingDelay > 0) {
+                if (options.autoSliding === false) return;
 
-            autoSlidingActive = true;
-            setAutoslidingTO();
+                autoSlidingActive = true;
 
-            $slider.classList.add("m--with-autosliding");
-            var triggerLayout = $slider.offsetTop;
+                setAutoslidingTO();
 
-            var delay = +options.autoSlidingDelay || autoSlidingDelay;
-            delay += slidingDelay + slidingAT;
+                if (!$slider.classList.contains("m--with-autosliding")) {
+                    $slider.classList.add("m--with-autosliding");
+                }
+                var triggerLayout = $slider.offsetTop;
 
-            $progressAS.forEach(function ($progress) {
-                $progress.style.transition = "transform " + (delay / 1000) + "s";
-            });
+                var delay = +options.autoSlidingDelay || autoSlidingDelay;
+                delay += slidingDelay + slidingAT;
+
+                $progressAS.forEach(function ($progress) {
+                    $progress.style.transition = "transform " + (delay / 1000) + "s";
+                });
+            }
+
+            $slider.querySelector(".fnc-nav__control:first-child").classList.add("m--active-control");
         }
-
-        $slider.querySelector(".fnc-nav__control:first-child").classList.add("m--active-control");
 
     };
 
@@ -165,6 +179,6 @@ autoSliding - boolean
 autoSlidingDelay - delay in ms. If audoSliding is on and no value provided, default value is 5000
 blockASafterClick - boolean. If user clicked any sliding control, autosliding won't start again
 */
-window.initialize_slider = () => {
-    fncSlider(".example-slider", { autoSlidingDelay: 4000 });
+window.initialize_slider = (isInitialize) => {
+    fncSlider(".example-slider", { autoSlidingDelay: 4000, isInitialize: isInitialize });
 }

@@ -5,7 +5,6 @@
 
 @using viewer.Components
 
-
 <!--
 Please note, that you can apply .m--global-blending-active to .fnc-slider
 to enable blend-mode for all background-images or apply .m--blend-bg-active
@@ -19,40 +18,54 @@ because it requires specific images, where more than 50% of bg is transparent or
 else
 {
     <div class="demo-cont">
-        <!-- slider start -->
         <div class="fnc-slider example-slider">
             <div class="fnc-slider__slides">
                 @foreach (var image in images)
                 {
-                    <h1>@image.IsActive</h1>
-                    <Slide isActive="@image.IsActive" blendType="@image.BlendType" name="@image.Name" image="@image.Image" />
+                    <Slide isActive="@image.Value.IsActive" blendType="@image.Value.BlendType" name="@image.Value.Name" image="@image.Value.Image" />
                 }
             </div>
             <nav class="fnc-nav">
                 <div class="fnc-nav__bgs">
                     @foreach (var image in images)
                     {
-                        <div class="fnc-nav__bg @bgBlendType(@image.BlendType) @bgIsActive(@image.IsActive)"></div>
+                        <div class="fnc-nav__bg @bgBlendType(@image.Value.BlendType) @bgIsActive(@image.Value.IsActive)"></div>
                     }
                 </div>
                 <div class="fnc-nav__controls">
                     @foreach (var image in images)
                     {
-                    <button class="fnc-nav__control">
-                        @image.Name
-                        <span class="fnc-nav__control-progress"></span>
-                    </button>
+                        <button class="fnc-nav__control">
+                            @image.Value.Name
+                            <span class="fnc-nav__control-progress"></span>
+                        </button>
                     }
                 </div>
             </nav>
         </div>
-        <!-- slider end -->
     </div>
+    <button class="btn btn-primary" @onclick="AddSlide">Add Data</button>
+    <span>Slide count : </span>@images.Count
 }
 
 @code {
+    private bool initializeJs = true;
     private bool initialized;
-    private ImageData[] images;
+    private Dictionary<string, ImageData> images = new Dictionary<string, ImageData>();
+
+    private async Task AddSlide()
+    {
+        var tmp_images = await Http.GetFromJsonAsync<ImageData[]>("sample-data/slide_data_add.json");
+        foreach (var image in tmp_images)
+        {
+            if (!images.ContainsKey(image.Image))
+            {
+                images.Add(image.Image, image);
+            }
+        }
+        initializeJs = false;
+        initialized = false;
+    }
 
     private string bgBlendType(Slide.BlendType blendType)
     {
@@ -81,20 +94,24 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        images = await Http.GetFromJsonAsync<ImageData[]>("sample-data/slide_data.json");
+        var tmp_images = await Http.GetFromJsonAsync<ImageData[]>("sample-data/slide_data.json");
+        foreach (var image in tmp_images)
+        {
+            images.Add(image.Image, image);
+        }
     }
 
-    public async Task TriggerJsPrompt()
+    public async Task TriggerJsPrompt(bool isInitialize)
     {
         await JSRuntime.InvokeVoidAsync(
-                "initialize_slider", new object[] { });
+            "initialize_slider", new object[] {isInitialize});
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender && images != null && !initialized)
         {
-            await TriggerJsPrompt();
+            await TriggerJsPrompt(initializeJs);
             initialized = true;
         }
     }
@@ -105,7 +122,10 @@ else
         public string Name { get; set; }
         public string Image { get; set; }
         public string BlendTypeString { get; set; }
-        public Slide.BlendType BlendType { get {
+        public Slide.BlendType BlendType
+        {
+            get
+            {
                 Slide.BlendType result = Slide.BlendType.Green;
                 switch (BlendTypeString)
                 {
@@ -123,6 +143,7 @@ else
                         break;
                 }
                 return result;
-            } }
+            }
+        }
     }
 }
