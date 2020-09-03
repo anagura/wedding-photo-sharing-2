@@ -1,8 +1,8 @@
 ﻿
 <div class="fnc-slide @_brendType @_active">
-    <div class="fnc-slide__inner">
+    <div class="fnc-slide__inner" style="background-image: url('@image');">
         <div class="fnc-slide__mask">
-            <div class="fnc-slide__mask-inner"></div>
+            <div class="fnc-slide__mask-inner" style="background-image: url('@image');"></div>
         </div>
         <div class="fnc-slide__content">
             <h2 class="fnc-slide__heading">
@@ -31,6 +31,9 @@
 
     [Parameter]
     public string name { set; get; }
+
+    [Parameter]
+    public string image { set; get; }
 
     private string _brendType {
         get {

@@ -25,7 +25,7 @@ else
                 @foreach (var image in images)
                 {
                     <h1>@image.IsActive</h1>
-                    <Slide isActive="@image.IsActive" blendType="@image.BlendType" name="@image.Name" />
+                    <Slide isActive="@image.IsActive" blendType="@image.BlendType" name="@image.Name" image="@image.Image" />
                 }
             </div>
             <nav class="fnc-nav">
