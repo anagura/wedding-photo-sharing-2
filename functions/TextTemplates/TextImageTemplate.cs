@@ -19,8 +19,9 @@ namespace functions.TextTemplates
         {
             LimitSize = limitSize;
             ImageName = imageName;
-            TemplateName = templateName;
             var currentDir = Path.Combine(Directory.GetCurrentDirectory(), TemplateDirectoryName);
+            ImagePath = Path.Combine(currentDir, ImageName);
+            TemplateName = templateName;
             var templatePath = Path.Combine(currentDir, TemplateName);
             Template = File.ReadAllText(templatePath);
         }
@@ -34,6 +35,11 @@ namespace functions.TextTemplates
         /// イメージ名
         /// </summary>
         public string ImageName { get; }
+
+        /// <summary>
+        /// イメージ(フルパス)
+        /// </summary>
+        public string ImagePath { get; }
 
         /// <summary>
         /// テンプレート名

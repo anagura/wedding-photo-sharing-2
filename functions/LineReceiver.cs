@@ -1,20 +1,23 @@
-﻿using System;
+﻿using functions.Extension;
+using functions.Model;
+using functions.TextTemplates;
+using functions.Utility;
+using LineMessaging;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.Http;
+using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.Table;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using LineMessaging;
-using Newtonsoft.Json;
-using Microsoft.Azure.WebJobs;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.Table;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using functions.Model;
 
 namespace WeddingPhotoSharing
 {
@@ -88,7 +91,7 @@ namespace WeddingPhotoSharing
                     {
                         string userId = eventMessage.Source.UserId;
                         var profile = await lineMessagingClient.GetProfile(userId);
-                        var Name = profile.DisplayName;
+                        var name = profile.DisplayName;
                         var ext = eventMessage.Message.Type == MessageType.Video ? ".mpg" : ".jpg";
                         var fileName = eventMessage.Message.Id.ToString() + ext;
                         string suffix = "";
@@ -96,20 +99,27 @@ namespace WeddingPhotoSharing
                         LineResult result = new LineResult()
                         {
                             Id = eventMessage.Message.Id,
-                            Name = Name,
+                            Name = name,
                             MessageType = (int)eventMessage.Message.Type,
                         };
                         if (eventMessage.Message.Type == MessageType.Text)
                         {
                             string textMessage = eventMessage.Message.Text;
+                            var maxLength = textMessage.Length > MessageLength ? MessageLength : textMessage.Length;
                             if (textMessage.Length > MessageLength)
                             {
                                 textMessage = textMessage.Substring(0, MessageLength) + "...";
                                 suffix = string.Format("\nメッセージが長いため、途中までしか表示されません。{0}文字以内で入力をお願いします。", MessageLength);
                             }
 
+                            // テンプレートよりランダム抽出
+                            var template = TextImageTemplateAccessor.PickRamdom(maxLength);
+
+                            // xamlよりバイト配列生成
+                            byte[] image = ImageGenerator.Generate(template, result.Name, textMessage);
+
                             // ストレージテーブルに格納
-                            await UploadMessageToStorageTable(eventMessage.Message.Id, Name, eventMessage.Message.Text);
+                            await UploadImageToStorage(fileName, image);
 
                             result.Message = textMessage;
                         }
