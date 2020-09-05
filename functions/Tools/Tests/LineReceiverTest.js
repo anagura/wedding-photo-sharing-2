@@ -22,13 +22,12 @@ const headers = {
 };
 
 //オプションを定義
-const requestUrl = 'http://localhost:7071/api/LineReceiver'
-const formData = data;
+const requestUrl = `${LineReceiverTestData.requestUrl}/api/LineReceiver`;
 
 const options = {
     url: requestUrl,
     headers: headers,
-    json: formData,
+    json: data,
 };
 
 // 通信
