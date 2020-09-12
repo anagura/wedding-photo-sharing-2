@@ -3,6 +3,7 @@ using RazorEngine;
 using RazorEngine.Templating;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Markup;
@@ -34,11 +35,22 @@ namespace functions.Utility
             };
             var inputXaml = Engine.Razor
                 .RunCompile(template.Template, template.ImageName, null, model);
-            var taskResult = Task.Run(() =>
-            {
-                return GenerateFromXaml(inputXaml);
-            });
-            var pngBytes = taskResult.Result;
+            inputXaml = string.Empty;
+
+            //var taskResult = Task.Run(() =>
+            //{
+            //    return GenerateFromXaml(inputXaml);
+            //});
+            //var pngBytes = taskResult.Result;
+
+            byte[] pngBytes = new byte[] { };
+            Thread pngCreationThread =
+                new Thread(delegate () { pngBytes = GenerateFromXaml(inputXaml); });
+            pngCreationThread.IsBackground = true;
+            pngCreationThread.SetApartmentState(ApartmentState.STA);
+            pngCreationThread.Start();
+            pngCreationThread.Join();
+
             return pngBytes;
         }
 
@@ -53,6 +65,7 @@ namespace functions.Utility
             {
                 return GetPngImage(element);
             }
+
             return Enumerable.Empty<byte>().ToArray();
         }
 
