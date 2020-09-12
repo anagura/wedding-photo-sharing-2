@@ -1,0 +1,26 @@
+﻿[
+  {
+    "isActive": true,
+    "blendTypeString": "Green",
+    "name": "tk & nancy",
+    "image": "/sample-data/bride_and_groom.jpg"
+  },
+  {
+    "isActive": false,
+    "blendTypeString": "Dark",
+    "name": "aeru",
+    "image": "/sample-data/aeru.jpg"
+  },
+  {
+    "isActive": false,
+    "blendTypeString": "Red",
+    "name": "hinata",
+    "image": "/sample-data/hinata.jpg"
+  },
+  {
+    "isActive": false,
+    "blendTypeString": "Blue",
+    "name": "riki",
+    "image": "/sample-data/riki.jpg"
+  }
+]

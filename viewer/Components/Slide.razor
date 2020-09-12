@@ -1,0 +1,67 @@
+﻿
+<div class="fnc-slide @_brendType @_active">
+    <div class="fnc-slide__inner" style="background-image: url('@image');">
+        <div class="fnc-slide__mask">
+            <div class="fnc-slide__mask-inner" style="background-image: url('@image');"></div>
+        </div>
+        <div class="fnc-slide__content">
+            <h2 class="fnc-slide__heading">
+                <div class="fnc-slide__heading-line">
+                    <span>@name</span>
+                </div>
+            </h2>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    public enum BlendType {
+        Green,
+        Dark,
+        Red,
+        Blue
+    }
+
+    [Parameter]
+    public bool isActive { set; get; }
+
+    [Parameter]
+    public BlendType blendType { set; get; }
+
+    [Parameter]
+    public string name { set; get; }
+
+    [Parameter]
+    public string image { set; get; }
+
+    private string _brendType {
+        get {
+            string result = "";
+            switch (blendType)
+            {
+                case BlendType.Green:
+                    result = "m--blend-green";
+                    break;
+                case BlendType.Dark:
+                    result = "m--blend-dark";
+                    break;
+                case BlendType.Red:
+                    result = "m--blend-red";
+                    break;
+                case BlendType.Blue:
+                    result = "m--blend-blue";
+                    break;
+            }
+            return result;
+        }
+    }
+
+    private string _active
+    {
+        get
+        {
+            return isActive ? "m--active-slide" : "";
+        }
+    }
+}

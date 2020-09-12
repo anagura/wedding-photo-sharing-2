@@ -1,7 +1,149 @@
 ﻿@page "/"
 
-<h1>Hello, world!</h1>
+@inject IJSRuntime JSRuntime
+@inject HttpClient Http
 
-Welcome to your new app.
+@using viewer.Components
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+<!--
+Please note, that you can apply .m--global-blending-active to .fnc-slider
+to enable blend-mode for all background-images or apply .m--blend-bg-active
+to some specific slides (.fnc-slide). It's disabled by default in this demo,
+because it requires specific images, where more than 50% of bg is transparent or monotone
+-->
+@if (images == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="demo-cont">
+        <div class="fnc-slider example-slider">
+            <div class="fnc-slider__slides">
+                @foreach (var image in images)
+                {
+                    <Slide isActive="@image.Value.IsActive" blendType="@image.Value.BlendType" name="@image.Value.Name" image="@image.Value.Image" />
+                }
+            </div>
+            <nav class="fnc-nav">
+                <div class="fnc-nav__bgs">
+                    @foreach (var image in images)
+                    {
+                        <div class="fnc-nav__bg @bgBlendType(@image.Value.BlendType) @bgIsActive(@image.Value.IsActive)"></div>
+                    }
+                </div>
+                <div class="fnc-nav__controls">
+                    @foreach (var image in images)
+                    {
+                        <button class="fnc-nav__control">
+                            @image.Value.Name
+                            <span class="fnc-nav__control-progress"></span>
+                        </button>
+                    }
+                </div>
+            </nav>
+        </div>
+    </div>
+    <button class="btn btn-primary" @onclick="AddSlide">Add Data</button>
+    <span>Slide count : </span>@images.Count
+}
+
+@code {
+    private bool initializeJs = true;
+    private bool initialized;
+    private Dictionary<string, ImageData> images = new Dictionary<string, ImageData>();
+
+    private async Task AddSlide()
+    {
+        var tmp_images = await Http.GetFromJsonAsync<ImageData[]>("sample-data/slide_data_add.json");
+        foreach (var image in tmp_images)
+        {
+            if (!images.ContainsKey(image.Image))
+            {
+                images.Add(image.Image, image);
+            }
+        }
+        initializeJs = false;
+        initialized = false;
+    }
+
+    private string bgBlendType(Slide.BlendType blendType)
+    {
+        string result = "";
+        switch (blendType)
+        {
+            case Slide.BlendType.Green:
+                result = "m--navbg-green";
+                break;
+            case Slide.BlendType.Dark:
+                result = "m--navbg-dark";
+                break;
+            case Slide.BlendType.Red:
+                result = "m--navbg-red";
+                break;
+            case Slide.BlendType.Blue:
+                result = "m--navbg-blue";
+                break;
+        }
+        return result;
+    }
+    private string bgIsActive(bool isActive)
+    {
+        return isActive ? "m--active-nav-bg" : "";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var tmp_images = await Http.GetFromJsonAsync<ImageData[]>("sample-data/slide_data.json");
+        foreach (var image in tmp_images)
+        {
+            images.Add(image.Image, image);
+        }
+    }
+
+    public async Task TriggerJsPrompt(bool isInitialize)
+    {
+        await JSRuntime.InvokeVoidAsync(
+            "initialize_slider", new object[] {isInitialize});
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender && images != null && !initialized)
+        {
+            await TriggerJsPrompt(initializeJs);
+            initialized = true;
+        }
+    }
+
+    public class ImageData
+    {
+        public bool IsActive { get; set; }
+        public string Name { get; set; }
+        public string Image { get; set; }
+        public string BlendTypeString { get; set; }
+        public Slide.BlendType BlendType
+        {
+            get
+            {
+                Slide.BlendType result = Slide.BlendType.Green;
+                switch (BlendTypeString)
+                {
+                    case "Green":
+                        result = Slide.BlendType.Green;
+                        break;
+                    case "Dark":
+                        result = Slide.BlendType.Dark;
+                        break;
+                    case "Red":
+                        result = Slide.BlendType.Red;
+                        break;
+                    case "Blue":
+                        result = Slide.BlendType.Blue;
+                        break;
+                }
+                return result;
+            }
+        }
+    }
+}
