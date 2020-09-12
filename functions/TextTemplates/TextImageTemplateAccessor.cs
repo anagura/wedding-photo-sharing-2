@@ -42,7 +42,7 @@ namespace functions.TextTemplates
         /// </summary>
         /// <param name="textLength"></param>
         /// <returns></returns>
-        public TextImageTemplate PickRamdom(int textLength)
+        public static TextImageTemplate PickRamdom(int textLength)
         {
             return List.Where(x => x.LimitSize >= textLength).PickRandom();
         }
