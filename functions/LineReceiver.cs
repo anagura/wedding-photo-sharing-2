@@ -1,5 +1,4 @@
-﻿using functions.Extension;
-using functions.Model;
+﻿using functions.Model;
 using functions.TextTemplates;
 using functions.Utility;
 using LineMessaging;
@@ -180,8 +179,7 @@ namespace WeddingPhotoSharing
 
             try
             {
-                HttpClient client = new HttpClient();
-
+                var client = new HttpClient();
                 // Request headers.
                 client.DefaultRequestHeaders.Add(
                     "Ocp-Apim-Subscription-Key", VisionSubscriptionKey);
@@ -259,49 +257,9 @@ namespace WeddingPhotoSharing
             await blockBlob.UploadFromByteArrayAsync(image, 0, image.Length);
         }
 
-        public class VisionAdultResult
-        {
-            [JsonProperty("adult")]
-            public VisionAdultResultDetail Adult { get; set; }
-        }
-
-        public class VisionAdultResultDetail
-        {
-            [JsonProperty("isAdultContent")]
-            public bool isAdultContent { get; set; }
-
-            [JsonProperty("adultScore")]
-            public double adultScore { get; set; }
-
-            [JsonProperty("isRacyContent")]
-            public bool isRacyContent { get; set; }
-
-            [JsonProperty("racyScore")]
-            public double racyScore { get; set; }
-        }
-
         private static string GetUrl(string fileName, bool isAdult = false)
         {
             return string.Format("https://{0}.blob.core.windows.net/{1}/{2}", StorageAccountName, isAdult ? LineAdultMediaContainerName : LineMediaContainerName, fileName);
         }
-
-        public class LineResult
-        {
-            [JsonProperty("id")]
-            public long Id { get; set; }
-
-            [JsonProperty("name")]
-            public string Name { get; set; }
-
-            [JsonProperty("messageType")]
-            public int MessageType { get; set; }
-
-            [JsonProperty("message")]
-            public string Message { get; set; }
-
-            [JsonProperty("imageUrl")]
-            public string ImageUrl { get; set; }
-        }
     }
-
 }

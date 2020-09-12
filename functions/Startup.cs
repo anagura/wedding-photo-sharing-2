@@ -15,6 +15,7 @@ namespace WeddingPhotoSharing
                             .AddEnvironmentVariables();
 
             AppSettings.Configuration = configBuilder.Build();
+
         }
     }
 }

@@ -73,6 +73,5 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Configration\" />
-    <Folder Include="Model\" />
   </ItemGroup>
 </Project>
