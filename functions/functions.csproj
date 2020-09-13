@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AzureFunctionsVersion>v3</AzureFunctionsVersion>
+    <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="TextTemplates\12071.png">
@@ -52,7 +53,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.3" />
+    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.8" />
     <PackageReference Include="LineMessaging" Version="1.2.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.7" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.7" />
@@ -68,8 +69,5 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Configration\" />
   </ItemGroup>
 </Project>

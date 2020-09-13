@@ -17,25 +17,13 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using static functions.Configration.EnvironmentVariables;
+using static functions.Const.FunctionsConst;
 
 namespace WeddingPhotoSharing
 {
     public static class LineReceiver
     {
-        static readonly string ChannelSecret = Environment.GetEnvironmentVariable("ChannelSecret", EnvironmentVariableTarget.Process);
-        static readonly string LineAccessToken = Environment.GetEnvironmentVariable("LineAccessToken", EnvironmentVariableTarget.Process);
-
-        static readonly string StorageAccountName = Environment.GetEnvironmentVariable("StorageAccountName", EnvironmentVariableTarget.Process);
-        static readonly string StorageAccountKey = Environment.GetEnvironmentVariable("StorageAccountKey", EnvironmentVariableTarget.Process);
-        static readonly string LineMediaContainerName = Environment.GetEnvironmentVariable("LineMediaContainerName", EnvironmentVariableTarget.Process);
-        static readonly string LineAdultMediaContainerName = Environment.GetEnvironmentVariable("LineAdultMediaContainerName", EnvironmentVariableTarget.Process);
-        static readonly string LineMessageTableName = Environment.GetEnvironmentVariable("LineMessageTableName", EnvironmentVariableTarget.Process);
-
-        static readonly string VisionSubscriptionKey = Environment.GetEnvironmentVariable("VisionSubscriptionKey", EnvironmentVariableTarget.Process);
-        static readonly string VisionUrl = "https://japaneast.api.cognitive.microsoft.com/vision/v2.0/analyze";
-
-        const int MessageLength = 40;
-
         static LineMessagingClient lineMessagingClient;
 
         // Azure Storage
@@ -58,7 +46,7 @@ namespace WeddingPhotoSharing
         {
             try
             {
-                var webhookRequest = new LineWebhookRequest(ChannelSecret, req);
+                var webhookRequest = new LineWebhookRequest(LineChannelSecret, req);
                 var valid = await webhookRequest.IsValid();
                 if (!valid)
                 {
@@ -108,7 +96,7 @@ namespace WeddingPhotoSharing
                             if (textMessage.Length > MessageLength)
                             {
                                 textMessage = textMessage.Substring(0, MessageLength) + "...";
-                                suffix = string.Format("\nメッセージが長いため、途中までしか表示されません。{0}文字以内で入力をお願いします。", MessageLength);
+                                suffix = $"{Environment.NewLine}メッセージが長いため、途中までしか表示されません。{MessageLength.ToString()}文字以内で入力をお願いします。";
                             }
 
                             // テンプレートよりランダム抽出
@@ -141,7 +129,8 @@ namespace WeddingPhotoSharing
                                 await UploadImageToStorage(fileName, lineResult.Result, true);
 
                                 vision_result += ", imageUrl:" + GetUrl(fileName, true);
-                                await ReplyToLine(eventMessage.ReplyToken, string.Format("ちょっと嫌な予感がするので、この写真は却下します。\nアダルト画像確率:{0}%", Math.Round(vision.Adult.adultScore * 100, 0, MidpointRounding.AwayFromZero)), log);
+                                var adaltRate = Math.Round(vision.Adult.adultScore * 100, 0, MidpointRounding.AwayFromZero);
+                                await ReplyToLine(eventMessage.ReplyToken, $"ちょっと嫌な予感がするので、この写真は却下します。{Environment.NewLine}アダルト画像確率:{adaltRate.ToString()}%", log);
                                 continue;
                             }
 
@@ -157,7 +146,7 @@ namespace WeddingPhotoSharing
                             continue;
                         }
 
-                        await ReplyToLine(eventMessage.ReplyToken, "投稿を受け付けました。表示されるまで少々お待ちください。" + suffix, log);
+                        await ReplyToLine(eventMessage.ReplyToken, $"投稿を受け付けました。表示されるまで少々お待ちください。{suffix}", log);
 
                         lineResults.Add(result);
                     }
@@ -168,7 +157,7 @@ namespace WeddingPhotoSharing
             }
             catch (Exception e)
             {
-                log.LogError($"Exception occured. Exception: { e } StackTrace: {e.StackTrace }");
+                log.LogError($"Exception occured. Exception: {e} StackTrace: {e.StackTrace}");
                 throw;
             }
         }
@@ -212,7 +201,7 @@ namespace WeddingPhotoSharing
             }
             catch (Exception e)
             {
-                log.LogError("\n" + e.Message);
+                log.LogError(Environment.NewLine + e.Message);
             }
 
             return contentString;
@@ -226,7 +215,7 @@ namespace WeddingPhotoSharing
             }
             catch (LineMessagingException lex)
             {
-                log.LogError(string.Format("message:{0}, source:{1}, token:{2}", lex.Message, lex.Source, replyToken));
+                log.LogError($"message:{lex.Message}, source:{lex.Source}, token:{replyToken}");
             }
             catch (Exception ex)
             {
@@ -259,7 +248,8 @@ namespace WeddingPhotoSharing
 
         private static string GetUrl(string fileName, bool isAdult = false)
         {
-            return string.Format("https://{0}.blob.core.windows.net/{1}/{2}", StorageAccountName, isAdult ? LineAdultMediaContainerName : LineMediaContainerName, fileName);
+            var containerName = isAdult? LineAdultMediaContainerName : LineMediaContainerName;
+            return $"https://{StorageAccountName}.blob.core.windows.net/{containerName}/{fileName}";
         }
     }
 }

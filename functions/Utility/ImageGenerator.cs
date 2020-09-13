@@ -35,13 +35,6 @@ namespace functions.Utility
             };
             var inputXaml = Engine.Razor
                 .RunCompile(template.Template, template.ImageName, null, model);
-            inputXaml = string.Empty;
-
-            //var taskResult = Task.Run(() =>
-            //{
-            //    return GenerateFromXaml(inputXaml);
-            //});
-            //var pngBytes = taskResult.Result;
 
             byte[] pngBytes = new byte[] { };
             Thread pngCreationThread =
