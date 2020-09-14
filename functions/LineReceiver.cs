@@ -22,7 +22,7 @@ using static functions.Const.FunctionsConst;
 
 namespace WeddingPhotoSharing
 {
-    public static class LineReceiver
+    public class LineReceiver
     {
         static LineMessagingClient lineMessagingClient;
 
@@ -39,8 +39,19 @@ namespace WeddingPhotoSharing
         static CloudTableClient tableClient;
         static CloudTable table;
 
+        private readonly IHttpClientFactory _httpClientFactory;
+
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
+        /// <param name="httpClientFactory"></param>
+        public LineReceiver(IHttpClientFactory httpClientFactory)
+        {
+            _httpClientFactory = httpClientFactory;
+        }
+
         [FunctionName("LineReceiver")]
-        public static async Task<IActionResult> Run(
+        public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestMessage req,
             ILogger log)
         {
@@ -162,13 +173,13 @@ namespace WeddingPhotoSharing
             }
         }
 
-        private static async Task<string> MakeAnalysisRequest(byte[] byteData, ILogger log)
+        private async Task<string> MakeAnalysisRequest(byte[] byteData, ILogger log)
         {
             string contentString = string.Empty;
 
             try
             {
-                var client = new HttpClient();
+                var client = _httpClientFactory.CreateClient();
                 // Request headers.
                 client.DefaultRequestHeaders.Add(
                     "Ocp-Apim-Subscription-Key", VisionSubscriptionKey);
