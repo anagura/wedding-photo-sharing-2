@@ -1,4 +1,5 @@
 ﻿using functions.Model;
+using functions.Service;
 using functions.TextTemplates;
 using functions.Utility;
 using LineMessaging;
@@ -15,7 +16,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using static functions.Configration.EnvironmentVariables;
 using static functions.Const.FunctionsConst;
@@ -39,15 +39,15 @@ namespace WeddingPhotoSharing
         static CloudTableClient tableClient;
         static CloudTable table;
 
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ComputeVisionService _computeVisionService;
 
         /// <summary>
         /// コンストラクタ
         /// </summary>
-        /// <param name="httpClientFactory"></param>
-        public LineReceiver(IHttpClientFactory httpClientFactory)
+        /// <param name="_computeVisionService"></param>
+        public LineReceiver(ComputeVisionService computeVisionService)
         {
-            _httpClientFactory = httpClientFactory;
+            _computeVisionService = computeVisionService;
         }
 
         [FunctionName("LineReceiver")]
@@ -92,7 +92,7 @@ namespace WeddingPhotoSharing
                         var name = profile.DisplayName;
                         var ext = eventMessage.Message.Type == MessageType.Video ? ".mpg" : ".jpg";
                         var fileName = eventMessage.Message.Id.ToString() + ext;
-                        string suffix = "";
+                        string suffix = string.Empty;
 
                         LineResult result = new LineResult()
                         {
@@ -130,25 +130,30 @@ namespace WeddingPhotoSharing
                                 throw new Exception("GetMessageContent is null");
                             }
 
-                            // エロ画像チェック
-                            string vision_result = await MakeAnalysisRequest(lineResult.Result, log);
-
-                            var vision = JsonConvert.DeserializeObject<VisionAdultResult>(vision_result);
-                            if (vision.Adult.isAdultContent)
+                            // 画像チェック
+                            var analyzeResult = await _computeVisionService.AnalyzeImageAsync(lineResult.Result);
+                            if (analyzeResult.Adult.IsAdultContent
+                                || analyzeResult.Adult.IsRacyContent)
                             {
                                 // アダルト用ストレージにアップロード
                                 await UploadImageToStorage(fileName, lineResult.Result, true);
 
-                                vision_result += ", imageUrl:" + GetUrl(fileName, true);
-                                var adaltRate = Math.Round(vision.Adult.adultScore * 100, 0, MidpointRounding.AwayFromZero);
-                                await ReplyToLine(eventMessage.ReplyToken, $"ちょっと嫌な予感がするので、この写真は却下します。{Environment.NewLine}アダルト画像確率:{adaltRate.ToString()}%", log);
+                                var baseScore = analyzeResult.Adult.IsAdultContent
+                                    ? analyzeResult.Adult.AdultScore
+                                    : analyzeResult.Adult.RacyScore;
+                                var rate = Math.Round(baseScore * 100, 0, MidpointRounding.AwayFromZero).ToString();
+                                await ReplyToLine(eventMessage.ReplyToken, $"ちょっと嫌な予感がするので、この写真は却下します。{Environment.NewLine}不快画像確率:{rate}%", log);
                                 continue;
                             }
 
                             // 画像をストレージにアップロード
                             await UploadImageToStorage(fileName, lineResult.Result);
 
-                            result.ImageUrl = GetUrl(fileName);
+                            // サムネイル化
+                            var thumbnailStream = await _computeVisionService.GenerateThumbnailStreamAsync(
+                                lineResult.Result, 150, 150, true);
+                            var thumbnailFileName = $"thumbnail_{fileName}";
+                            await StorageUtil.UploadImage(thumbnailStream, thumbnailFileName);
                         }
                         else
                         {
@@ -171,51 +176,6 @@ namespace WeddingPhotoSharing
                 log.LogError($"Exception occured. Exception: {e} StackTrace: {e.StackTrace}");
                 throw;
             }
-        }
-
-        private async Task<string> MakeAnalysisRequest(byte[] byteData, ILogger log)
-        {
-            string contentString = string.Empty;
-
-            try
-            {
-                var client = _httpClientFactory.CreateClient();
-                // Request headers.
-                client.DefaultRequestHeaders.Add(
-                    "Ocp-Apim-Subscription-Key", VisionSubscriptionKey);
-
-                // Request parameters. A third optional parameter is "details".
-                string requestParameters = "visualFeatures=Adult";
-
-                // Assemble the URI for the REST API Call.
-                string uri = VisionUrl + "?" + requestParameters;
-
-                HttpResponseMessage response;
-
-                // Request body. Posts a locally stored JPEG image.
-                //				  byte[] byteData = GetImageAsByteArray(imageFilePath);
-
-                using (ByteArrayContent content = new ByteArrayContent(byteData))
-                {
-                    // This example uses content type "application/octet-stream".
-                    // The other content types you can use are "application/json"
-                    // and "multipart/form-data".
-                    content.Headers.ContentType =
-                        new MediaTypeHeaderValue("application/octet-stream");
-
-                    // Make the REST API call.
-                    response = await client.PostAsync(uri, content);
-                }
-
-                // Get the JSON response.
-                contentString = await response.Content.ReadAsStringAsync();
-            }
-            catch (Exception e)
-            {
-                log.LogError(Environment.NewLine + e.Message);
-            }
-
-            return contentString;
         }
 
         private static async Task ReplyToLine(string replyToken, string message, ILogger log)

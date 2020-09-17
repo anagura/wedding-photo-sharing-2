@@ -1,4 +1,5 @@
 ﻿using functions.Configration;
+using functions.Service;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,13 +20,10 @@ namespace WeddingPhotoSharing
 
             AppSettings.Configuration = configBuilder.Build();
 
-            builder.Services.AddHttpClient("multiplepolicies")
+            builder.Services.AddScoped<ComputeVisionService>();
+            builder.Services.AddHttpClient<ComputeVisionService>()
                 .AddTransientHttpErrorPolicy(
-                p => p.RetryAsync(HttpClientRetryCountOnError))
-                .AddTransientHttpErrorPolicy(
-                p => p.CircuitBreakerAsync(
-                    HttpClientHandledEventsAllowedBeforeBreaking,
-                    HttpClientDurationOnBreak));
+                p => p.RetryAsync(HttpClientRetryCountOnError));
         }
     }
 }
