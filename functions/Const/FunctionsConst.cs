@@ -6,11 +6,36 @@
     public class FunctionsConst
     {
         public const string ComputeVisionEndpoint = "https://japaneast.api.cognitive.microsoft.com/";
-        public static readonly string ComputeVisionAnalyzeUrl= $"{ComputeVisionEndpoint}vision/v2.0/analyze";
-        private static readonly string ComputeVisionGenerateThumbnailUrl = $"{ComputeVisionEndpoint}vision/v3.0/generateThumbnail";
 
-        public const int MessageLength = 40;
+        /// <summary>
+        /// 画像のサムネイル基準height
+        /// </summary>
+        public const int ThumbnailImageStandardHeight = 300;
 
+        /// <summary>
+        /// メッセージ最大長
+        /// </summary>
+        public const int MessageMaxLength = 40;
+
+        /// <summary>
+        /// HTTPリトライ回数
+        /// </summary>
         public const int HttpClientRetryCountOnError = 3;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public enum MediaStorageType
+    {
+        /// <summary>
+        /// 通常
+        /// </summary>
+        Normal,
+
+        /// <summary>
+        /// アダルト
+        /// </summary>
+        Adult,
     }
 }

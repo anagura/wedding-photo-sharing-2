@@ -103,11 +103,11 @@ namespace WeddingPhotoSharing
                         if (eventMessage.Message.Type == MessageType.Text)
                         {
                             string textMessage = eventMessage.Message.Text;
-                            var maxLength = textMessage.Length > MessageLength ? MessageLength : textMessage.Length;
-                            if (textMessage.Length > MessageLength)
+                            var maxLength = textMessage.Length > MessageMaxLength ? MessageMaxLength : textMessage.Length;
+                            if (textMessage.Length > MessageMaxLength)
                             {
-                                textMessage = textMessage.Substring(0, MessageLength) + "...";
-                                suffix = $"{Environment.NewLine}メッセージが長いため、途中までしか表示されません。{MessageLength.ToString()}文字以内で入力をお願いします。";
+                                textMessage = textMessage.Substring(0, MessageMaxLength) + "...";
+                                suffix = $"{Environment.NewLine}メッセージが長いため、途中までしか表示されません。{MessageMaxLength.ToString()}文字以内で入力をお願いします。";
                             }
 
                             // テンプレートよりランダム抽出
@@ -151,9 +151,14 @@ namespace WeddingPhotoSharing
 
                             // サムネイル化
                             var thumbnailStream = await _computeVisionService.GenerateThumbnailStreamAsync(
-                                lineResult.Result, 150, 150, true);
-                            var thumbnailFileName = $"thumbnail_{fileName}";
-                            await StorageUtil.UploadImage(thumbnailStream, thumbnailFileName);
+                                lineResult.Result, analyzeResult.Metadata.Width,
+                                analyzeResult.Metadata.Height,
+                                true);
+                            if (thumbnailStream != null)
+                            {
+                                var thumbnailFileName = $"thumbnail_{fileName}";
+                                await StorageUtil.UploadImage(thumbnailStream, thumbnailFileName);
+                            }
                         }
                         else
                         {
