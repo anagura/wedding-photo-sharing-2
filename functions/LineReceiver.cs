@@ -1,4 +1,5 @@
-﻿using functions.Model;
+﻿using functions.Const;
+using functions.Model;
 using functions.Service;
 using functions.TextTemplates;
 using functions.Utility;
@@ -7,9 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
 using System;
@@ -25,19 +23,6 @@ namespace WeddingPhotoSharing
     public class LineReceiver
     {
         static LineMessagingClient lineMessagingClient;
-
-        // Azure Storage
-        static StorageCredentials storageCredentials;
-        static CloudStorageAccount storageAccount;
-
-        // 画像格納のBlob
-        static CloudBlobClient blobClient;
-        static CloudBlobContainer container;
-        static CloudBlobContainer adultContainer;
-
-        // メッセージ格納のTable
-        static CloudTableClient tableClient;
-        static CloudTable table;
 
         private readonly ComputeVisionService _computeVisionService;
 
@@ -66,16 +51,6 @@ namespace WeddingPhotoSharing
                 }
 
                 lineMessagingClient = new LineMessagingClient(LineAccessToken);
-
-                storageCredentials = new StorageCredentials(StorageAccountName, StorageAccountKey);
-                storageAccount = new CloudStorageAccount(storageCredentials, true);
-                blobClient = storageAccount.CreateCloudBlobClient();
-                container = blobClient.GetContainerReference(LineMediaContainerName);
-                adultContainer = blobClient.GetContainerReference(LineAdultMediaContainerName);
-
-                tableClient = storageAccount.CreateCloudTableClient();
-                table = tableClient.GetTableReference(LineMessageTableName);
-                await table.CreateIfNotExistsAsync();
 
                 var message = await webhookRequest.GetContentJson();
                 log.LogInformation(message);
@@ -117,7 +92,8 @@ namespace WeddingPhotoSharing
                             byte[] image = ImageGenerator.Generate(template, result.Name, textMessage);
 
                             // ストレージテーブルに格納
-                            await UploadImageToStorage(fileName, image);
+                            await StorageUtil.UploadImage(
+                                image, fileName);
 
                             result.Message = textMessage;
                         }
@@ -132,22 +108,20 @@ namespace WeddingPhotoSharing
 
                             // 画像チェック
                             var analyzeResult = await _computeVisionService.AnalyzeImageAsync(lineResult.Result);
-                            if (analyzeResult.Adult.IsAdultContent
-                                || analyzeResult.Adult.IsRacyContent)
+                            var checkResult= _computeVisionService.CheckImageAnalysis(analyzeResult);
+                            if (checkResult.IsAbnormal)
                             {
                                 // アダルト用ストレージにアップロード
-                                await UploadImageToStorage(fileName, lineResult.Result, true);
+                                await StorageUtil.UploadImage(
+                                    lineResult.Result, fileName, BlobContainerType.Adult);
 
-                                var baseScore = analyzeResult.Adult.IsAdultContent
-                                    ? analyzeResult.Adult.AdultScore
-                                    : analyzeResult.Adult.RacyScore;
-                                var rate = Math.Round(baseScore * 100, 0, MidpointRounding.AwayFromZero).ToString();
+                                var rate = checkResult.AbnormalRate.ToString();
                                 await ReplyToLine(eventMessage.ReplyToken, $"ちょっと嫌な予感がするので、この写真は却下します。{Environment.NewLine}不快画像確率:{rate}%", log);
                                 continue;
                             }
 
                             // 画像をストレージにアップロード
-                            await UploadImageToStorage(fileName, lineResult.Result);
+                            await StorageUtil.UploadImage(lineResult.Result, fileName);
 
                             // サムネイル化
                             var thumbnailStream = await _computeVisionService.GenerateThumbnailStreamAsync(
@@ -157,7 +131,7 @@ namespace WeddingPhotoSharing
                             if (thumbnailStream != null)
                             {
                                 var thumbnailFileName = $"thumbnail_{fileName}";
-                                await StorageUtil.UploadImage(thumbnailStream, thumbnailFileName);
+                                await StorageUtil.UploadImage(lineResult.Result, thumbnailFileName);
                             }
                         }
                         else
@@ -199,27 +173,17 @@ namespace WeddingPhotoSharing
             }
         }
 
-        private static async Task UploadMessageToStorageTable(long id, string name, string message)
+        private static async ValueTask<TableResult> UploadMessageToStorageTable(long id, string name, string message)
         {
             // テーブルストレージに格納
-            LineMessageEntity tableMessage = new LineMessageEntity(name, id.ToString());
-            tableMessage.Id = id;
-            tableMessage.Name = name;
-            tableMessage.Message = message;
+            var tableMessage = new LineMessageEntity(name, id.ToString())
+            {
+                Id = id,
+                Name = name,
+                Message = message,
+            };
 
-            TableOperation insertOperation = TableOperation.Insert(tableMessage);
-            await table.ExecuteAsync(insertOperation);
-        }
-
-        private static async Task UploadImageToStorage(string fileName, byte[] image, bool isAdult = false)
-        {
-            CloudBlockBlob blockBlob = isAdult ?
-                adultContainer.GetBlockBlobReference(fileName) :
-                container.GetBlockBlobReference(fileName);
-
-            blockBlob.Properties.ContentType = "image/jpeg";
-
-            await blockBlob.UploadFromByteArrayAsync(image, 0, image.Length);
+            return await StorageUtil.UploadMessageToTableAsync(tableMessage);
         }
 
         private static string GetUrl(string fileName, bool isAdult = false)

@@ -24,9 +24,9 @@
     }
 
     /// <summary>
-    /// 
+    /// BlobContainer種別
     /// </summary>
-    public enum MediaStorageType
+    public enum BlobContainerType
     {
         /// <summary>
         /// 通常

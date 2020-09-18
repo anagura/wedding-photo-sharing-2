@@ -1,6 +1,7 @@
 ﻿using Microsoft.Azure.CognitiveServices.Vision.ComputerVision;
 using Microsoft.Azure.CognitiveServices.Vision.ComputerVision.Models;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
@@ -48,7 +49,6 @@ namespace functions.Service
             };
         }
 
-
         /// <summary>
         /// 画像分析
         /// </summary>
@@ -59,6 +59,30 @@ namespace functions.Service
             using var stream = new MemoryStream(buffer);
             return await _computerVisionClient.AnalyzeImageInStreamAsync(
                 stream, _visualFeatureList);
+        }
+
+        /// <summary>
+        /// 分析結果のチェック
+        /// </summary>
+        /// <param name="analysis"></param>
+        /// <returns></returns>
+        public (bool IsAbnormal, double AbnormalRate) CheckImageAnalysis(ImageAnalysis analysis)
+        {
+            var baseScore = analysis.Adult.IsAdultContent
+                ? analysis.Adult.AdultScore
+                : analysis.Adult.RacyScore;
+
+            var isAbnormal = analysis.Adult.IsAdultContent
+                 || analysis.Adult.IsRacyContent;
+
+            var rate = isAbnormal
+                ? Math.Round(baseScore * 100, 0, MidpointRounding.AwayFromZero)
+                : 0;
+
+            (bool IsAbnormal, double Rate) result =
+                (isAbnormal, rate);
+
+            return result;
         }
 
         /// <summary>
