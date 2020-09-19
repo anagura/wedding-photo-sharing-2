@@ -62,26 +62,25 @@ namespace functions.Utility
 
             return true;
         }
-        public static async Task<LineMessageEntity> FetchMassage(string partitionKey, string rowKey)
+        public static async Task<List<LineMessageEntity>> FetchMassage()
         {
             if (_instance == null)
             {
                 _instance = new StorageUtil();
             }
 
-            return await _instance.FetchMassageFromTable(partitionKey, rowKey);
+            return await _instance.FetchMassageFromTable();
         }
 
-        public async Task<LineMessageEntity> FetchMassageFromTable(string partitionKey, string rowKey)
+        public async Task<List<LineMessageEntity>> FetchMassageFromTable()
         {
-            LineMessageEntity result = null;
+            List<LineMessageEntity> result = new List<LineMessageEntity>();
 
             try
             {
-                var retrieveOperation = TableOperation.Retrieve<LineMessageEntity>(partitionKey, rowKey);
-                TableResult retrievedResult = await _messageContainer.ExecuteAsync(retrieveOperation);
-
-                result = retrievedResult.Result as LineMessageEntity;
+                TableQuery<LineMessageEntity> query = new TableQuery<LineMessageEntity>();
+                var list = await _messageContainer.ExecuteQuerySegmentedAsync(query, null);
+                result = list.Results;
             }
             catch (Exception ex)
             {
@@ -90,7 +89,5 @@ namespace functions.Utility
 
             return result;
         }
-
-
     }
 }
