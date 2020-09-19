@@ -1,9 +1,13 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using functions.Configration;
+using functions.Model;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.Table;
 
 namespace functions.Utility
 {
@@ -14,7 +18,9 @@ namespace functions.Utility
         private static readonly string _accountName = AppSettings.Configuration["StorageAccountName"];
         private static readonly string _accountKey = AppSettings.Configuration["StorageAccountKey"];
         private static readonly string _imageContainer = AppSettings.Configuration["LineMediaContainerName"];
+        private static readonly string _messageTableContainer = AppSettings.Configuration["LineMessageTableName"];
         private readonly CloudBlobContainer _container;
+        private readonly CloudTable _messageContainer;
 
         private static readonly string _domain = AppSettings.Configuration["StorageImageDomainName"];
 
@@ -24,6 +30,10 @@ namespace functions.Utility
             CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
             _container = blobClient.GetContainerReference(_imageContainer);
+
+
+            CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+            _messageContainer = tableClient.GetTableReference(_messageTableContainer);
         }
 
         public static string GetFullPath(string fileName)
@@ -52,6 +62,35 @@ namespace functions.Utility
 
             return true;
         }
+        public static async Task<LineMessageEntity> FetchMassage(string partitionKey, string rowKey)
+        {
+            if (_instance == null)
+            {
+                _instance = new StorageUtil();
+            }
+
+            return await _instance.FetchMassageFromTable(partitionKey, rowKey);
+        }
+
+        public async Task<LineMessageEntity> FetchMassageFromTable(string partitionKey, string rowKey)
+        {
+            LineMessageEntity result = null;
+
+            try
+            {
+                var retrieveOperation = TableOperation.Retrieve<LineMessageEntity>(partitionKey, rowKey);
+                TableResult retrievedResult = await _messageContainer.ExecuteAsync(retrieveOperation);
+
+                result = retrievedResult.Result as LineMessageEntity;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+            return result;
+        }
+
 
     }
 }
