@@ -1,5 +1,4 @@
-﻿using functions.Configration;
-using functions.Const;
+﻿using functions.Const;
 using functions.Storage;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
@@ -13,9 +12,6 @@ namespace functions.Utility
     public class StorageUtil
     {
         private static StorageUtil _instance;
-
-        private static readonly string _domain = AppSettings.Configuration["StorageImageDomainName"];
-
         private static CloudTable _table;
 
         public readonly BlobContainerProvider _blobContainer;
@@ -29,9 +25,14 @@ namespace functions.Utility
             _table = tableClient.GetTableReference(LineMessageTableName);
         }
 
-        public static string GetFullPath(string fileName)
+        /// <summary>
+        /// 画像フルパス取得
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <returns></returns>
+        public static string GetImageFullPath(string fileName)
         {
-            return string.Format("https://{0}/{1}/{2}", _domain, LineMediaContainerName, fileName);
+            return $"https://{StorageImageDomainName}/{LineMediaContainerName}/{fileName}";
         }
 
         private async ValueTask UploadImageToStorage(

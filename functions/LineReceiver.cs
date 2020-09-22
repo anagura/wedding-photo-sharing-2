@@ -123,6 +123,10 @@ namespace WeddingPhotoSharing
                             // 画像をストレージにアップロード
                             await StorageUtil.UploadImage(lineResult.Result, fileName);
 
+                            // tableにアップロード
+                            var imageFullPath = StorageUtil.GetImageFullPath(fileName);
+                            await UploadMessageToStorageTable(eventMessage.Message.Id, fileName, imageFullPath);
+
                             // サムネイル化
                             var thumbnailStream = await _computeVisionService.GenerateThumbnailStreamAsync(
                                 lineResult.Result, analyzeResult.Metadata.Width,
@@ -184,12 +188,6 @@ namespace WeddingPhotoSharing
             };
 
             return await StorageUtil.UploadMessageToTableAsync(tableMessage);
-        }
-
-        private static string GetUrl(string fileName, bool isAdult = false)
-        {
-            var containerName = isAdult? LineAdultMediaContainerName : LineMediaContainerName;
-            return $"https://{StorageAccountName}.blob.core.windows.net/{containerName}/{fileName}";
         }
     }
 }

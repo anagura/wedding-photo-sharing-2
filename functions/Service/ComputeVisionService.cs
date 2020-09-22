@@ -103,7 +103,7 @@ namespace functions.Service
                 var calcWidth = (int)(width * ratio);
                 using var stream = new MemoryStream(buffer);
                 return await _computerVisionClient.GenerateThumbnailInStreamAsync(
-                    calcWidth, height, stream, smartCropping);
+                    calcWidth, standardHeight, stream, smartCropping);
             }
             return null;
         }
