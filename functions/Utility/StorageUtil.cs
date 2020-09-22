@@ -17,13 +17,14 @@ namespace functions.Utility
         private static StorageUtil _instance;
 
         public readonly BlobContainerProvider _blobContainer;
-        private readonly CloudBlobContainer _container;
         private readonly CloudTable _messageContainer;
 
         private StorageUtil()
         {
-            StorageCredentials storageCredentials = new StorageCredentials(StorageAccountName, StorageAccountKey);
-            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
+            StorageCredentials storageCredentials = new StorageCredentials(
+                StorageAccountName, StorageAccountKey);
+            CloudStorageAccount storageAccount = new CloudStorageAccount(
+                storageCredentials, true);
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
             _blobContainer = new BlobContainerProvider(blobClient);
             var tableClient = storageAccount.CreateCloudTableClient();
@@ -69,7 +70,6 @@ namespace functions.Utility
         public static async ValueTask<TableResult> UploadMessageAsync(ITableEntity entity)
         {
             _instance ??= new StorageUtil();
-
             return await _instance.UploadMessageToTableAsync(entity);
         }
 
@@ -82,7 +82,7 @@ namespace functions.Utility
 
         public async Task<List<LineMessageEntity>> FetchMassageFromTable()
         {
-            List<LineMessageEntity> result = null;
+            List<LineMessageEntity> result = new List<LineMessageEntity>();
 
             try
             {
