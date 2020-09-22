@@ -1,6 +1,10 @@
 ﻿using functions.Configration;
+using functions.Service;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Polly;
+using static functions.Const.FunctionsConst;
 
 [assembly: FunctionsStartup(typeof(WeddingPhotoSharing.Startup))]
 
@@ -16,6 +20,10 @@ namespace WeddingPhotoSharing
 
             AppSettings.Configuration = configBuilder.Build();
 
+            builder.Services.AddScoped<ComputeVisionService>();
+            builder.Services.AddHttpClient<ComputeVisionService>()
+                .AddTransientHttpErrorPolicy(
+                p => p.RetryAsync(HttpClientRetryCountOnError));
         }
     }
 }

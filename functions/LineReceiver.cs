@@ -1,4 +1,6 @@
-﻿using functions.Model;
+﻿using functions.Const;
+using functions.Model;
+using functions.Service;
 using functions.TextTemplates;
 using functions.Utility;
 using LineMessaging;
@@ -6,41 +8,35 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using static functions.Configration.EnvironmentVariables;
 using static functions.Const.FunctionsConst;
 
 namespace WeddingPhotoSharing
 {
-    public static class LineReceiver
+    public class LineReceiver
     {
         static LineMessagingClient lineMessagingClient;
 
-        // Azure Storage
-        static StorageCredentials storageCredentials;
-        static CloudStorageAccount storageAccount;
+        private readonly ComputeVisionService _computeVisionService;
 
-        // 画像格納のBlob
-        static CloudBlobClient blobClient;
-        static CloudBlobContainer container;
-        static CloudBlobContainer adultContainer;
-
-        // メッセージ格納のTable
-        static CloudTableClient tableClient;
-        static CloudTable table;
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
+        /// <param name="_computeVisionService"></param>
+        public LineReceiver(ComputeVisionService computeVisionService)
+        {
+            _computeVisionService = computeVisionService;
+        }
 
         [FunctionName("LineReceiver")]
-        public static async Task<IActionResult> Run(
+        public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestMessage req,
             ILogger log)
         {
@@ -55,16 +51,6 @@ namespace WeddingPhotoSharing
                 }
 
                 lineMessagingClient = new LineMessagingClient(LineAccessToken);
-
-                storageCredentials = new StorageCredentials(StorageAccountName, StorageAccountKey);
-                storageAccount = new CloudStorageAccount(storageCredentials, true);
-                blobClient = storageAccount.CreateCloudBlobClient();
-                container = blobClient.GetContainerReference(LineMediaContainerName);
-                adultContainer = blobClient.GetContainerReference(LineAdultMediaContainerName);
-
-                tableClient = storageAccount.CreateCloudTableClient();
-                table = tableClient.GetTableReference(LineMessageTableName);
-                await table.CreateIfNotExistsAsync();
 
                 var message = await webhookRequest.GetContentJson();
                 log.LogInformation(message);
@@ -81,7 +67,7 @@ namespace WeddingPhotoSharing
                         var name = profile.DisplayName;
                         var ext = eventMessage.Message.Type == MessageType.Video ? ".mpg" : ".jpg";
                         var fileName = eventMessage.Message.Id.ToString() + ext;
-                        string suffix = "";
+                        string suffix = string.Empty;
 
                         LineResult result = new LineResult()
                         {
@@ -92,11 +78,11 @@ namespace WeddingPhotoSharing
                         if (eventMessage.Message.Type == MessageType.Text)
                         {
                             string textMessage = eventMessage.Message.Text;
-                            var maxLength = textMessage.Length > MessageLength ? MessageLength : textMessage.Length;
-                            if (textMessage.Length > MessageLength)
+                            var maxLength = textMessage.Length > MessageMaxLength ? MessageMaxLength : textMessage.Length;
+                            if (textMessage.Length > MessageMaxLength)
                             {
-                                textMessage = textMessage.Substring(0, MessageLength) + "...";
-                                suffix = $"{Environment.NewLine}メッセージが長いため、途中までしか表示されません。{MessageLength.ToString()}文字以内で入力をお願いします。";
+                                textMessage = textMessage.Substring(0, MessageMaxLength) + "...";
+                                suffix = $"{Environment.NewLine}メッセージが長いため、途中までしか表示されません。{MessageMaxLength.ToString()}文字以内で入力をお願いします。";
                             }
 
                             // テンプレートよりランダム抽出
@@ -106,7 +92,8 @@ namespace WeddingPhotoSharing
                             byte[] image = ImageGenerator.Generate(template, result.Name, textMessage);
 
                             // ストレージテーブルに格納
-                            await UploadImageToStorage(fileName, image);
+                            await StorageUtil.UploadImage(
+                                image, fileName);
 
                             result.Message = textMessage;
                         }
@@ -119,25 +106,37 @@ namespace WeddingPhotoSharing
                                 throw new Exception("GetMessageContent is null");
                             }
 
-                            // エロ画像チェック
-                            string vision_result = await MakeAnalysisRequest(lineResult.Result, log);
-
-                            var vision = JsonConvert.DeserializeObject<VisionAdultResult>(vision_result);
-                            if (vision.Adult.isAdultContent)
+                            // 画像チェック
+                            var analyzeResult = await _computeVisionService.AnalyzeImageAsync(lineResult.Result);
+                            var checkResult= _computeVisionService.CheckImageAnalysis(analyzeResult);
+                            if (checkResult.IsAbnormal)
                             {
                                 // アダルト用ストレージにアップロード
-                                await UploadImageToStorage(fileName, lineResult.Result, true);
+                                await StorageUtil.UploadImage(
+                                    lineResult.Result, fileName, BlobContainerType.Adult);
 
-                                vision_result += ", imageUrl:" + GetUrl(fileName, true);
-                                var adaltRate = Math.Round(vision.Adult.adultScore * 100, 0, MidpointRounding.AwayFromZero);
-                                await ReplyToLine(eventMessage.ReplyToken, $"ちょっと嫌な予感がするので、この写真は却下します。{Environment.NewLine}アダルト画像確率:{adaltRate.ToString()}%", log);
+                                var rate = checkResult.AbnormalRate.ToString();
+                                await ReplyToLine(eventMessage.ReplyToken, $"ちょっと嫌な予感がするので、この写真は却下します。{Environment.NewLine}不快画像確率:{rate}%", log);
                                 continue;
                             }
 
                             // 画像をストレージにアップロード
-                            await UploadImageToStorage(fileName, lineResult.Result);
+                            await StorageUtil.UploadImage(lineResult.Result, fileName);
 
-                            result.ImageUrl = GetUrl(fileName);
+                            // tableにアップロード
+                            var imageFullPath = StorageUtil.GetImageFullPath(fileName);
+                            await UploadMessageToStorageTable(eventMessage.Message.Id, fileName, imageFullPath);
+
+                            // サムネイル化
+                            var thumbnailStream = await _computeVisionService.GenerateThumbnailStreamAsync(
+                                lineResult.Result, analyzeResult.Metadata.Width,
+                                analyzeResult.Metadata.Height,
+                                true);
+                            if (thumbnailStream != null)
+                            {
+                                var thumbnailFileName = $"thumbnail_{fileName}";
+                                await StorageUtil.UploadImage(lineResult.Result, thumbnailFileName);
+                            }
                         }
                         else
                         {
@@ -162,51 +161,6 @@ namespace WeddingPhotoSharing
             }
         }
 
-        private static async Task<string> MakeAnalysisRequest(byte[] byteData, ILogger log)
-        {
-            string contentString = string.Empty;
-
-            try
-            {
-                var client = new HttpClient();
-                // Request headers.
-                client.DefaultRequestHeaders.Add(
-                    "Ocp-Apim-Subscription-Key", VisionSubscriptionKey);
-
-                // Request parameters. A third optional parameter is "details".
-                string requestParameters = "visualFeatures=Adult";
-
-                // Assemble the URI for the REST API Call.
-                string uri = VisionUrl + "?" + requestParameters;
-
-                HttpResponseMessage response;
-
-                // Request body. Posts a locally stored JPEG image.
-                //				  byte[] byteData = GetImageAsByteArray(imageFilePath);
-
-                using (ByteArrayContent content = new ByteArrayContent(byteData))
-                {
-                    // This example uses content type "application/octet-stream".
-                    // The other content types you can use are "application/json"
-                    // and "multipart/form-data".
-                    content.Headers.ContentType =
-                        new MediaTypeHeaderValue("application/octet-stream");
-
-                    // Make the REST API call.
-                    response = await client.PostAsync(uri, content);
-                }
-
-                // Get the JSON response.
-                contentString = await response.Content.ReadAsStringAsync();
-            }
-            catch (Exception e)
-            {
-                log.LogError(Environment.NewLine + e.Message);
-            }
-
-            return contentString;
-        }
-
         private static async Task ReplyToLine(string replyToken, string message, ILogger log)
         {
             try
@@ -223,33 +177,18 @@ namespace WeddingPhotoSharing
             }
         }
 
-        private static async Task UploadMessageToStorageTable(long id, string name, string message)
+        private static async ValueTask<TableResult> UploadMessageToStorageTable(
+            long id, string name, string message)
         {
             // テーブルストレージに格納
-            LineMessageEntity tableMessage = new LineMessageEntity(name, id.ToString());
-            tableMessage.Id = id;
-            tableMessage.Name = name;
-            tableMessage.Message = message;
+            var tableMessage = new LineMessageEntity(name, id.ToString())
+            {
+                Id = id,
+                Name = name,
+                Message = message,
+            };
 
-            TableOperation insertOperation = TableOperation.Insert(tableMessage);
-            await table.ExecuteAsync(insertOperation);
-        }
-
-        private static async Task UploadImageToStorage(string fileName, byte[] image, bool isAdult = false)
-        {
-            CloudBlockBlob blockBlob = isAdult ?
-                adultContainer.GetBlockBlobReference(fileName) :
-                container.GetBlockBlobReference(fileName);
-
-            blockBlob.Properties.ContentType = "image/jpeg";
-
-            await blockBlob.UploadFromByteArrayAsync(image, 0, image.Length);
-        }
-
-        private static string GetUrl(string fileName, bool isAdult = false)
-        {
-            var containerName = isAdult? LineAdultMediaContainerName : LineMediaContainerName;
-            return $"https://{StorageAccountName}.blob.core.windows.net/{containerName}/{fileName}";
+            return await StorageUtil.UploadMessageAsync(tableMessage);
         }
     }
 }

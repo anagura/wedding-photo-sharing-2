@@ -5,8 +5,37 @@
     /// </summary>
     public class FunctionsConst
     {
-        public const string VisionUrl = "https://japaneast.api.cognitive.microsoft.com/vision/v2.0/analyze";
+        public const string ComputeVisionEndpoint = "https://japaneast.api.cognitive.microsoft.com/";
 
-        public const int MessageLength = 40;
+        /// <summary>
+        /// 画像のサムネイル基準height
+        /// </summary>
+        public const int ThumbnailImageStandardHeight = 300;
+
+        /// <summary>
+        /// メッセージ最大長
+        /// </summary>
+        public const int MessageMaxLength = 40;
+
+        /// <summary>
+        /// HTTPリトライ回数
+        /// </summary>
+        public const int HttpClientRetryCountOnError = 3;
+    }
+
+    /// <summary>
+    /// BlobContainer種別
+    /// </summary>
+    public enum BlobContainerType
+    {
+        /// <summary>
+        /// 通常
+        /// </summary>
+        Normal,
+
+        /// <summary>
+        /// アダルト
+        /// </summary>
+        Adult,
     }
 }

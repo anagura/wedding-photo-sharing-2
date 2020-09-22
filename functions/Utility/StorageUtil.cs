@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-using functions.Configration;
+using functions.Const;
 using functions.Model;
+using functions.Storage;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Table;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using static functions.Configration.EnvironmentVariables;
 
 namespace functions.Utility
 {
@@ -15,61 +16,68 @@ namespace functions.Utility
     {
         private static StorageUtil _instance;
 
-        private static readonly string _accountName = AppSettings.Configuration["StorageAccountName"];
-        private static readonly string _accountKey = AppSettings.Configuration["StorageAccountKey"];
-        private static readonly string _imageContainer = AppSettings.Configuration["LineMediaContainerName"];
-        private static readonly string _messageTableContainer = AppSettings.Configuration["LineMessageTableName"];
-        private readonly CloudBlobContainer _container;
+        public readonly BlobContainerProvider _blobContainer;
         private readonly CloudTable _messageContainer;
-
-        private static readonly string _domain = AppSettings.Configuration["StorageImageDomainName"];
 
         private StorageUtil()
         {
-            StorageCredentials storageCredentials = new StorageCredentials(_accountName, _accountKey);
-            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
+            StorageCredentials storageCredentials = new StorageCredentials(
+                StorageAccountName, StorageAccountKey);
+            CloudStorageAccount storageAccount = new CloudStorageAccount(
+                storageCredentials, true);
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-            _container = blobClient.GetContainerReference(_imageContainer);
-
-
-            CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
-            _messageContainer = tableClient.GetTableReference(_messageTableContainer);
+            _blobContainer = new BlobContainerProvider(blobClient);
+            var tableClient = storageAccount.CreateCloudTableClient();
+            _messageContainer = tableClient.GetTableReference(LineMessageTableName);
         }
 
-        public static string GetFullPath(string fileName)
+        /// <summary>
+        /// 画像フルパス取得
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <returns></returns>
+        public static string GetImageFullPath(string fileName)
         {
-            return string.Format("https://{0}/{1}/{2}", _domain, _imageContainer, fileName);
+            return $"https://{StorageImageDomainName}/{LineMediaContainerName}/{fileName}";
         }
 
-        private async Task<bool> UploadImageToStorage(Stream stream, string fileName)
+        private async ValueTask UploadImageToStorage(
+            byte[] buffer,
+            string fileName,
+            BlobContainerType containerType)
         {
-            CloudBlockBlob blockBlob = _container.GetBlockBlobReference(fileName);
+            var container = _blobContainer.GetBlobContainer(containerType);
+            CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
             blockBlob.Properties.ContentType = "image/jpeg";
 
-            await blockBlob.UploadFromStreamAsync(stream);
-
-            return true;
+            await blockBlob.UploadFromByteArrayAsync(buffer, 0, buffer.Length);
         }
 
-        public static async Task<bool> UploadImage(Stream stream, string fileName)
+        public static async ValueTask UploadImage(byte[] buffer,
+            string fileName,
+            BlobContainerType containerType = BlobContainerType.Normal)
         {
-            if (_instance == null)
-            {
-                _instance = new StorageUtil();
-            }
-
-            await _instance.UploadImageToStorage(stream, fileName);
-
-            return true;
+            _instance ??= new StorageUtil();
+            await _instance.UploadImageToStorage(
+                buffer, fileName, containerType);
         }
         public static async Task<List<LineMessageEntity>> FetchMassage()
         {
-            if (_instance == null)
-            {
-                _instance = new StorageUtil();
-            }
-
+            _instance ??= new StorageUtil();
             return await _instance.FetchMassageFromTable();
+        }
+
+        public static async ValueTask<TableResult> UploadMessageAsync(ITableEntity entity)
+        {
+            _instance ??= new StorageUtil();
+            return await _instance.UploadMessageToTableAsync(entity);
+        }
+
+        private async ValueTask<TableResult> UploadMessageToTableAsync(ITableEntity entity)
+        {
+            await _messageContainer.CreateIfNotExistsAsync();
+            var insertOperation = TableOperation.InsertOrReplace(entity);
+            return await _messageContainer.ExecuteAsync(insertOperation);
         }
 
         public async Task<List<LineMessageEntity>> FetchMassageFromTable()
