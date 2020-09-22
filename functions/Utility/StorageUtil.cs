@@ -1,9 +1,12 @@
-﻿using functions.Const;
+using functions.Const;
+using functions.Model;
 using functions.Storage;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Table;
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using static functions.Configration.EnvironmentVariables;
 
@@ -12,9 +15,11 @@ namespace functions.Utility
     public class StorageUtil
     {
         private static StorageUtil _instance;
-        private static CloudTable _table;
 
         public readonly BlobContainerProvider _blobContainer;
+        private readonly CloudBlobContainer _container;
+        private readonly CloudTable _messageContainer;
+
         private StorageUtil()
         {
             StorageCredentials storageCredentials = new StorageCredentials(StorageAccountName, StorageAccountKey);
@@ -22,7 +27,7 @@ namespace functions.Utility
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
             _blobContainer = new BlobContainerProvider(blobClient);
             var tableClient = storageAccount.CreateCloudTableClient();
-            _table = tableClient.GetTableReference(LineMessageTableName);
+            _messageContainer = tableClient.GetTableReference(LineMessageTableName);
         }
 
         /// <summary>
@@ -55,12 +60,42 @@ namespace functions.Utility
             await _instance.UploadImageToStorage(
                 buffer, fileName, containerType);
         }
-
-        public static async ValueTask<TableResult> UploadMessageToTableAsync(ITableEntity entity)
+        public static async Task<List<LineMessageEntity>> FetchMassage()
         {
-            await _table.CreateIfNotExistsAsync();
-            var insertOperation = TableOperation.Insert(entity);
-            return await _table.ExecuteAsync(insertOperation);
+            _instance ??= new StorageUtil();
+            return await _instance.FetchMassageFromTable();
+        }
+
+        public static async ValueTask<TableResult> UploadMessageAsync(ITableEntity entity)
+        {
+            _instance ??= new StorageUtil();
+
+            return await _instance.UploadMessageToTableAsync(entity);
+        }
+
+        private async ValueTask<TableResult> UploadMessageToTableAsync(ITableEntity entity)
+        {
+            await _messageContainer.CreateIfNotExistsAsync();
+            var insertOperation = TableOperation.InsertOrReplace(entity);
+            return await _messageContainer.ExecuteAsync(insertOperation);
+        }
+
+        public async Task<List<LineMessageEntity>> FetchMassageFromTable()
+        {
+            List<LineMessageEntity> result = null;
+
+            try
+            {
+                TableQuery<LineMessageEntity> query = new TableQuery<LineMessageEntity>();
+                var list = await _messageContainer.ExecuteQuerySegmentedAsync(query, null);
+                result = list.Results;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+            return result;
         }
     }
 }

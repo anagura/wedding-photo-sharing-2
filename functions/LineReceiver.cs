@@ -177,7 +177,8 @@ namespace WeddingPhotoSharing
             }
         }
 
-        private static async ValueTask<TableResult> UploadMessageToStorageTable(long id, string name, string message)
+        private static async ValueTask<TableResult> UploadMessageToStorageTable(
+            long id, string name, string message)
         {
             // テーブルストレージに格納
             var tableMessage = new LineMessageEntity(name, id.ToString())
@@ -187,7 +188,7 @@ namespace WeddingPhotoSharing
                 Message = message,
             };
 
-            return await StorageUtil.UploadMessageToTableAsync(tableMessage);
+            return await StorageUtil.UploadMessageAsync(tableMessage);
         }
     }
 }
