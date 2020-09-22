@@ -47,6 +47,11 @@ namespace functions.Configration
             => visionSubscriptionKey
             ??= GetEnvironmentVariable("VisionSubscriptionKey");
 
+        private static string storageImageDomainName;
+        public static string StorageImageDomainName
+            => storageImageDomainName
+            ??= GetEnvironmentVariable("StorageImageDomainName");
+
         /// <summary>
         /// 指定keyで環境変数より値を取得
         /// </summary>
