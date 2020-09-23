@@ -13,11 +13,11 @@ using static functions.Const.FunctionsConst;
 namespace functions.Service
 {
     /// <summary>
-    /// Service for ComputeVision
+    /// Service for ComputerVision
     /// </summary>
-    public class ComputeVisionService
+    public class ComputerVisionService
     {
-        private readonly ILogger<ComputeVisionService> _logger;
+        private readonly ILogger<ComputerVisionService> _logger;
         private readonly ComputerVisionClient _computerVisionClient;
  
         /// <summary>
@@ -35,8 +35,8 @@ namespace functions.Service
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="httpClientFactory"></param>
-        public ComputeVisionService(
-            ILogger<ComputeVisionService> logger,
+        public ComputerVisionService(
+            ILogger<ComputerVisionService> logger,
             IHttpClientFactory httpClientFactory
             )
         {

@@ -9,11 +9,11 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Table;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using static functions.Configration.EnvironmentVariables;
 using static functions.Const.FunctionsConst;
@@ -24,15 +24,15 @@ namespace WeddingPhotoSharing
     {
         static LineMessagingClient lineMessagingClient;
 
-        private readonly ComputeVisionService _computeVisionService;
+        private readonly ComputerVisionService _computerVisionService;
 
         /// <summary>
         /// コンストラクタ
         /// </summary>
-        /// <param name="_computeVisionService"></param>
-        public LineReceiver(ComputeVisionService computeVisionService)
+        /// <param name="computerVisionService"></param>
+        public LineReceiver(ComputerVisionService computeVisionService)
         {
-            _computeVisionService = computeVisionService;
+            _computerVisionService = computeVisionService;
         }
 
         [FunctionName("LineReceiver")]
@@ -107,15 +107,15 @@ namespace WeddingPhotoSharing
                             }
 
                             // 画像チェック
-                            var analyzeResult = await _computeVisionService.AnalyzeImageAsync(lineResult.Result);
-                            var checkResult= _computeVisionService.CheckImageAnalysis(analyzeResult);
-                            if (checkResult.IsAbnormal)
+                            var analyzeResult = await _computerVisionService.AnalyzeImageAsync(lineResult.Result);
+                            var (IsAbnormal, AbnormalRate) = _computerVisionService.CheckImageAnalysis(analyzeResult);
+                            if (IsAbnormal)
                             {
                                 // アダルト用ストレージにアップロード
                                 await StorageUtil.UploadImage(
                                     lineResult.Result, fileName, BlobContainerType.Adult);
 
-                                var rate = checkResult.AbnormalRate.ToString();
+                                var rate = AbnormalRate.ToString();
                                 await ReplyToLine(eventMessage.ReplyToken, $"ちょっと嫌な予感がするので、この写真は却下します。{Environment.NewLine}不快画像確率:{rate}%", log);
                                 continue;
                             }
@@ -128,7 +128,7 @@ namespace WeddingPhotoSharing
                             await UploadMessageToStorageTable(eventMessage.Message.Id, fileName, imageFullPath);
 
                             // サムネイル化
-                            var thumbnailStream = await _computeVisionService.GenerateThumbnailStreamAsync(
+                            var thumbnailStream = await _computerVisionService.GenerateThumbnailStreamAsync(
                                 lineResult.Result, analyzeResult.Metadata.Width,
                                 analyzeResult.Metadata.Height,
                                 true);
@@ -151,7 +151,7 @@ namespace WeddingPhotoSharing
                     }
                 }
 
-                return new OkObjectResult(lineResults.Any() ? JsonConvert.SerializeObject(lineResults) : string.Empty);
+                return new OkObjectResult(lineResults.Any() ? JsonSerializer.Serialize(lineResults) : string.Empty);
 
             }
             catch (Exception e)

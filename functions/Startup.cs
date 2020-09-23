@@ -20,8 +20,8 @@ namespace WeddingPhotoSharing
 
             AppSettings.Configuration = configBuilder.Build();
 
-            builder.Services.AddScoped<ComputeVisionService>();
-            builder.Services.AddHttpClient<ComputeVisionService>()
+            builder.Services.AddScoped<ComputerVisionService>();
+            builder.Services.AddHttpClient<ComputerVisionService>()
                 .AddTransientHttpErrorPolicy(
                 p => p.RetryAsync(HttpClientRetryCountOnError));
         }

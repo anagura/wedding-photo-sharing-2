@@ -1,22 +1,22 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace functions.Model
 {
     public class LineResult
     {
-        [JsonProperty("id")]
+        [JsonPropertyName("id")]
         public long Id { get; set; }
 
-        [JsonProperty("name")]
+        [JsonPropertyName("name")]
         public string Name { get; set; }
 
-        [JsonProperty("messageType")]
+        [JsonPropertyName("messageType")]
         public int MessageType { get; set; }
 
-        [JsonProperty("message")]
+        [JsonPropertyName("message")]
         public string Message { get; set; }
 
-        [JsonProperty("imageUrl")]
+        [JsonPropertyName("imageUrl")]
         public string ImageUrl { get; set; }
     }
 }
