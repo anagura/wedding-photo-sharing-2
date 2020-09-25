@@ -1,14 +1,5 @@
 ﻿using functions.TextTemplates;
-using RazorEngine;
-using RazorEngine.Templating;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Markup;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
+
 
 namespace functions.Utility
 {
@@ -27,6 +18,7 @@ namespace functions.Utility
         public static byte[] Generate(TextImageTemplate template,
             string modelName, string textMessage)
         {
+#if false
             var model = new
             {
                 Name = modelName,
@@ -45,6 +37,9 @@ namespace functions.Utility
             pngCreationThread.Join();
 
             return pngBytes;
+#else
+            return new byte[1];
+#endif
         }
 
         /// <summary>
@@ -54,14 +49,19 @@ namespace functions.Utility
         /// <returns></returns>
         private static byte[] GenerateFromXaml(string xaml)
         {
+#if false
             if (XamlReader.Parse(xaml) is FrameworkElement element)
             {
                 return GetPngImage(element);
             }
 
             return Enumerable.Empty<byte>().ToArray();
+#else
+            return new byte[1];
+#endif
         }
 
+#if false
         /// <summary>
         /// WPFプロパティ
         /// </summary>
@@ -92,5 +92,6 @@ namespace functions.Utility
             pngEncoder.Save(outputStream);
             return outputStream.ToArray();
         }
+#endif
     }
 }
