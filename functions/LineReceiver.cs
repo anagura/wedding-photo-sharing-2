@@ -126,18 +126,21 @@ namespace WeddingPhotoSharing
                             // サムネイル化
                             var thumbnailFileName = string.Empty;
                             var thumbnailStream = await _computerVisionService.GenerateThumbnailStreamAsync(
-                                lineResult.Result, analyzeResult.Metadata.Width,
-                                analyzeResult.Metadata.Height,
+                                lineResult.Result, 
+                                analyzeResult.Metadata.Width / 4,
+                                analyzeResult.Metadata.Height / 4,
                                 true);
                             if (thumbnailStream != null)
                             {
                                 thumbnailFileName = $"thumbnail_{fileName}";
-                                await StorageUtil.UploadImage(lineResult.Result, thumbnailFileName);
+                                await StorageUtil.UploadImage(StorageUtil.GetByteArrayFromStream(thumbnailStream), thumbnailFileName);
                             }
 
                             // tableにアップロード
                             var imageFullPath = StorageUtil.GetImageFullPath(fileName);
-                            await UploadMessageToStorageTable(eventMessage.Message.Id, name, string.Empty, imageFullPath, thumbnailFileName, imageFullPath);
+                            await UploadMessageToStorageTable(eventMessage.Message.Id,
+                                name, string.Empty, imageFullPath,
+                                StorageUtil.GetImageFullPath(thumbnailFileName), imageFullPath);
                         }
                         else
                         {

@@ -7,6 +7,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using static functions.Configration.EnvironmentVariables;
 
@@ -39,6 +40,13 @@ namespace functions.Utility
         public static string GetImageFullPath(string fileName)
         {
             return $"https://{StorageImageDomainName}/{LineMediaContainerName}/{fileName}";
+        }
+
+        public static byte[] GetByteArrayFromStream(Stream sm)
+        {
+            using MemoryStream ms = new MemoryStream();
+            sm.CopyTo(ms);
+            return ms.ToArray();
         }
 
         private async ValueTask UploadImageToStorage(
