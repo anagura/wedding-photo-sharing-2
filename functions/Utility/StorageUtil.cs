@@ -17,7 +17,7 @@ namespace functions.Utility
         private static StorageUtil _instance;
 
         public readonly BlobContainerProvider _blobContainer;
-        private readonly CloudTable _messageContainer;
+        private readonly CloudTable _containerUrlTable;
 
         private StorageUtil()
         {
@@ -28,7 +28,7 @@ namespace functions.Utility
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
             _blobContainer = new BlobContainerProvider(blobClient);
             var tableClient = storageAccount.CreateCloudTableClient();
-            _messageContainer = tableClient.GetTableReference(LineMessageTableName);
+            _containerUrlTable = tableClient.GetTableReference(LineMediaContainerUrlTableName);
         }
 
         /// <summary>
@@ -75,9 +75,9 @@ namespace functions.Utility
 
         private async ValueTask<TableResult> UploadMessageToTableAsync(ITableEntity entity)
         {
-            await _messageContainer.CreateIfNotExistsAsync();
+            await _containerUrlTable.CreateIfNotExistsAsync();
             var insertOperation = TableOperation.InsertOrReplace(entity);
-            return await _messageContainer.ExecuteAsync(insertOperation);
+            return await _containerUrlTable.ExecuteAsync(insertOperation);
         }
 
         public async Task<List<LineMessageEntity>> FetchMassageFromTable()
@@ -87,7 +87,7 @@ namespace functions.Utility
             try
             {
                 TableQuery<LineMessageEntity> query = new TableQuery<LineMessageEntity>();
-                var list = await _messageContainer.ExecuteQuerySegmentedAsync(query, null);
+                var list = await _containerUrlTable.ExecuteQuerySegmentedAsync(query, null);
                 result = list.Results;
             }
             catch (Exception ex)

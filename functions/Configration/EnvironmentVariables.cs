@@ -52,6 +52,11 @@ namespace functions.Configration
             => storageImageDomainName
             ??= GetEnvironmentVariable("StorageImageDomainName");
 
+        private static string lineMediaContainerUrlTableName;
+        public static string LineMediaContainerUrlTableName
+            => lineMediaContainerUrlTableName
+            ??= GetEnvironmentVariable("LineMediaContainerUrlTableName");
+
         /// <summary>
         /// 指定keyで環境変数より値を取得
         /// </summary>
