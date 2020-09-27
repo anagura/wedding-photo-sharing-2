@@ -11,7 +11,7 @@ to enable blend-mode for all background-images or apply .m--blend-bg-active
 to some specific slides (.fnc-slide). It's disabled by default in this demo,
 because it requires specific images, where more than 50% of bg is transparent or monotone
 -->
-@if (images == null)
+@if (messages == null)
 {
     <p><em>Loading...</em></p>
 }
@@ -20,20 +20,20 @@ else
     <div class="demo-cont">
         <div class="fnc-slider example-slider">
             <div class="fnc-slider__slides">
-                @foreach (var image in images)
+                @foreach (var image in messages)
                 {
-                    <Slide isActive="@image.Value.IsActive" blendType="@image.Value.BlendType" name="@image.Value.Name" image="@image.Value.Image" />
+                    <Slide isActive="@image.Value.IsActive" blendType="@image.Value.BlendType" name="@image.Value.Name" image="@image.Value.ImageUrl" />
                 }
             </div>
             <nav class="fnc-nav">
                 <div class="fnc-nav__bgs">
-                    @foreach (var image in images)
+                    @foreach (var image in messages)
                     {
                         <div class="fnc-nav__bg @bgBlendType(@image.Value.BlendType) @bgIsActive(@image.Value.IsActive)"></div>
                     }
                 </div>
                 <div class="fnc-nav__controls">
-                    @foreach (var image in images)
+                    @foreach (var image in messages)
                     {
                         <button class="fnc-nav__control">
                             @image.Value.Name
@@ -45,22 +45,22 @@ else
         </div>
     </div>
     <button class="btn btn-primary" @onclick="AddSlide">Add Data</button>
-    <span>Slide count : </span>@images.Count
+    <span>Slide count : </span>@messages.Count
 }
 
 @code {
     private bool initializeJs = true;
     private bool initialized;
-    private Dictionary<string, ImageData> images = new Dictionary<string, ImageData>();
+    private Dictionary<long, MessageEntity> messages = new Dictionary<long, MessageEntity>();
 
     private async Task AddSlide()
     {
-        var tmp_images = await Http.GetFromJsonAsync<ImageData[]>("sample-data/slide_data_add.json");
-        foreach (var image in tmp_images)
+        var tmp_messages = await Http.GetFromJsonAsync<MessageEntity[]>("https://satoweddingphotosharing.azurewebsites.net/api/FetchImage");
+        foreach (var msg in tmp_messages)
         {
-            if (!images.ContainsKey(image.Image))
+            if (!messages.ContainsKey(msg.Id))
             {
-                images.Add(image.Image, image);
+                messages.Add(msg.Id, msg);
             }
         }
         initializeJs = false;
@@ -94,10 +94,21 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var tmp_images = await Http.GetFromJsonAsync<ImageData[]>("sample-data/slide_data.json");
-        foreach (var image in tmp_images)
+        try
         {
-            images.Add(image.Image, image);
+            var tmp_messages = await Http.GetFromJsonAsync<MessageEntity[]>("https://satoweddingphotosharing.azurewebsites.net/api/FetchImage");
+
+            int i = 0;
+            foreach (var msg in tmp_messages)
+            {
+                msg.IsActive = i == 0;  // TODO:
+                messages.Add(msg.Id, msg);
+                i++;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
         }
     }
 
@@ -109,18 +120,28 @@ else
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender && images != null && !initialized)
+        if (!firstRender && messages != null && !initialized)
         {
             await TriggerJsPrompt(initializeJs);
             initialized = true;
         }
     }
 
-    public class ImageData
+    public class MessageEntity
     {
-        public bool IsActive { get; set; }
+        public long Id { get; set; }
+
         public string Name { get; set; }
-        public string Image { get; set; }
+
+        public string Message { get; set; }
+
+        public string ImageUrl { get; set; }
+
+        public string ThunbnailImageUrl { get; set; }
+
+        public string RawImageUrl { get; set; }
+
+        public bool IsActive { get; set; }
         public string BlendTypeString { get; set; }
         public Slide.BlendType BlendType
         {
