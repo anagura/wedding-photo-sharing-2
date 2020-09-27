@@ -137,7 +137,7 @@ namespace WeddingPhotoSharing
 
                             // tableにアップロード
                             var imageFullPath = StorageUtil.GetImageFullPath(fileName);
-                            await UploadMessageToStorageTable(eventMessage.Message.Id, fileName, string.Empty, imageFullPath, thumbnailFileName, imageFullPath);
+                            await UploadMessageToStorageTable(eventMessage.Message.Id, name, string.Empty, imageFullPath, thumbnailFileName, imageFullPath);
                         }
                         else
                         {
