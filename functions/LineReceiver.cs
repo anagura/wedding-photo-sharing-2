@@ -123,20 +123,21 @@ namespace WeddingPhotoSharing
                             // 画像をストレージにアップロード
                             await StorageUtil.UploadImage(lineResult.Result, fileName);
 
-                            // tableにアップロード
-                            var imageFullPath = StorageUtil.GetImageFullPath(fileName);
-                            await UploadMessageToStorageTable(eventMessage.Message.Id, fileName, imageFullPath);
-
                             // サムネイル化
+                            var thumbnailFileName = string.Empty;
                             var thumbnailStream = await _computerVisionService.GenerateThumbnailStreamAsync(
                                 lineResult.Result, analyzeResult.Metadata.Width,
                                 analyzeResult.Metadata.Height,
                                 true);
                             if (thumbnailStream != null)
                             {
-                                var thumbnailFileName = $"thumbnail_{fileName}";
+                                thumbnailFileName = $"thumbnail_{fileName}";
                                 await StorageUtil.UploadImage(lineResult.Result, thumbnailFileName);
                             }
+
+                            // tableにアップロード
+                            var imageFullPath = StorageUtil.GetImageFullPath(fileName);
+                            await UploadMessageToStorageTable(eventMessage.Message.Id, fileName, string.Empty, imageFullPath, thumbnailFileName, imageFullPath);
                         }
                         else
                         {
@@ -178,7 +179,7 @@ namespace WeddingPhotoSharing
         }
 
         private static async ValueTask<TableResult> UploadMessageToStorageTable(
-            long id, string name, string message)
+            long id, string name, string message, string imageUrl, string thumbnailImageUrl, string rawImageUrl)
         {
             // テーブルストレージに格納
             var tableMessage = new LineMessageEntity(name, id.ToString())
@@ -186,6 +187,9 @@ namespace WeddingPhotoSharing
                 Id = id,
                 Name = name,
                 Message = message,
+                ImageUrl = imageUrl,
+                ThunbnailImageUrl= thumbnailImageUrl,
+                RawImageUrl = rawImageUrl
             };
 
             return await StorageUtil.UploadMessageAsync(tableMessage);

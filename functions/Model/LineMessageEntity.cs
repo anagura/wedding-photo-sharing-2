@@ -17,5 +17,11 @@ namespace functions.Model
 		public string Name { get; set; }
 
 		public string Message { get; set; }
+
+		public string ImageUrl { get; set; }
+
+		public string ThunbnailImageUrl { get; set; }
+
+		public string RawImageUrl { get; set; }
 	}
 }
