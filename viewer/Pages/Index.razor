@@ -3,6 +3,7 @@
 @inject IJSRuntime JSRuntime
 @inject HttpClient Http
 
+@using System.Threading
 @using viewer.Components
 
 <!--
@@ -11,9 +12,9 @@ to enable blend-mode for all background-images or apply .m--blend-bg-active
 to some specific slides (.fnc-slide). It's disabled by default in this demo,
 because it requires specific images, where more than 50% of bg is transparent or monotone
 -->
-@if (messages == null)
+@if (messages.Count == 0)
 {
-    <p><em>Loading...</em></p>
+    <p><em>Fetching images. please wait...</em></p>
 }
 else
 {
@@ -44,14 +45,15 @@ else
             </nav>
         </div>
     </div>
-    <button class="btn btn-primary" @onclick="AddSlide">Add Data</button>
-    <span>Slide count : </span>@messages.Count
 }
 
 @code {
     private bool initializeJs = true;
     private bool initialized;
     private Dictionary<long, MessageEntity> messages = new Dictionary<long, MessageEntity>();
+
+    private bool inTimer = false;
+    private readonly int delay = 10000;
 
     private async Task AddSlide()
     {
@@ -92,6 +94,18 @@ else
         return isActive ? "m--active-nav-bg" : "";
     }
 
+    private async Task HandleTimerCallback(object state)
+    {
+        if (inTimer)
+        {
+            return;
+        }
+        inTimer = true;
+        await AddSlide();
+        this.StateHasChanged();
+        inTimer = false;
+    }
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -110,12 +124,14 @@ else
         {
             Console.WriteLine(ex.ToString());
         }
+
+        var timer = new Timer(async o => await HandleTimerCallback(o), null, delay, delay);
     }
 
     public async Task TriggerJsPrompt(bool isInitialize)
     {
         await JSRuntime.InvokeVoidAsync(
-            "initialize_slider", new object[] {isInitialize});
+            "initialize_slider", new object[] { isInitialize });
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
