@@ -40,7 +40,7 @@ jobs:
       with:
         azure-devops-project-url: 'https://dev.azure.com/aeru-develop/aeru-develop'
         azure-pipeline-name: 'wedding-photo-sharing-2-Azure Functions for .NET-CI' # name of the Azure pipeline to be triggered
-        azure-devops-token: '${{ secrets.AZURE_DEVOPS_TOKEN }}'
+        azure-devops-token: '${{ secrets.AZURE_DEVOPS_TOKEN_FOR_FUNCTIONS }}'
     
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
