@@ -4,9 +4,8 @@ on:
   push:
     branches:
     - master
-    - feature/devops-trigger
     paths:
-        - 'functions/**'
+    - 'functions/**'
 
 jobs:
   build_and_deploy_job:
