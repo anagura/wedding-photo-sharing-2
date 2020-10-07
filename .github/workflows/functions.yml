@@ -4,15 +4,17 @@ on:
   push:
     branches:
     - master
+    - feature/devops-trigger
+    paths:
+        - 'functions/**'
 
 jobs:
   build_and_deploy_job:
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     name: Build and Deploy Job
     steps:
-    - uses: Azure/pipelines@v1
     - name: Azure Devops Pipelines Trigger
+      uses: Azure/pipelines@v1
       with:
         azure-devops-project-url: 'https://dev.azure.com/aeru-develop/aeru-develop'
         azure-pipeline-name: 'wedding-photo-sharing-2-Azure Functions for .NET-CI' # name of the Azure pipeline to be triggered
