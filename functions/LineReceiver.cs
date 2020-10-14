@@ -88,7 +88,7 @@ namespace WeddingPhotoSharing
                             // テンプレートよりランダム抽出
                             var template = TextImageTemplateAccessor.PickRamdom(maxLength);
 
-                            // xamlよりバイト配列生成
+                            // テンプレートよりバイト配列生成
                             byte[] image = ImageGenerator.Generate(template, result.Name, textMessage);
 
                             // ストレージテーブルに格納
