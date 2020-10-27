@@ -134,13 +134,13 @@ namespace WeddingPhotoSharing
                             {
                                 thumbnailFileName = $"thumbnail_{fileName}";
                                 await StorageUtil.UploadImage(StorageUtil.GetByteArrayFromStream(thumbnailStream), thumbnailFileName);
-                            }
 
-                            // tableにアップロード
-                            var imageFullPath = StorageUtil.GetImageFullPath(fileName);
-                            await UploadMessageToStorageTable(eventMessage.Message.Id,
-                                name, string.Empty, imageFullPath,
-                                StorageUtil.GetImageFullPath(thumbnailFileName), imageFullPath);
+                                // tableにアップロード
+                                var imageFullPath = StorageUtil.GetImageFullPath(fileName);
+                                await UploadMessageToStorageTable(eventMessage.Message.Id,
+                                    name, string.Empty, imageFullPath,
+                                    StorageUtil.GetImageFullPath(thumbnailFileName), imageFullPath);
+                            }
                         }
                         else
                         {
