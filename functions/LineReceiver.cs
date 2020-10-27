@@ -20,6 +20,9 @@ using static functions.Const.FunctionsConst;
 
 namespace WeddingPhotoSharing
 {
+    /// <summary>
+    /// LineReceiver
+    /// </summary>
     public class LineReceiver
     {
         static LineMessagingClient lineMessagingClient;
