@@ -20,6 +20,9 @@ using static functions.Const.FunctionsConst;
 
 namespace WeddingPhotoSharing
 {
+    /// <summary>
+    /// LineReceiver
+    /// </summary>
     public class LineReceiver
     {
         static LineMessagingClient lineMessagingClient;
@@ -88,7 +91,7 @@ namespace WeddingPhotoSharing
                             // テンプレートよりランダム抽出
                             var template = TextImageTemplateAccessor.PickRamdom(maxLength);
 
-                            // xamlよりバイト配列生成
+                            // テンプレートよりバイト配列生成
                             byte[] image = ImageGenerator.Generate(template, result.Name, textMessage);
 
                             // ストレージテーブルに格納
@@ -134,13 +137,13 @@ namespace WeddingPhotoSharing
                             {
                                 thumbnailFileName = $"thumbnail_{fileName}";
                                 await StorageUtil.UploadImage(StorageUtil.GetByteArrayFromStream(thumbnailStream), thumbnailFileName);
-                            }
 
-                            // tableにアップロード
-                            var imageFullPath = StorageUtil.GetImageFullPath(fileName);
-                            await UploadMessageToStorageTable(eventMessage.Message.Id,
-                                name, string.Empty, imageFullPath,
-                                StorageUtil.GetImageFullPath(thumbnailFileName), imageFullPath);
+                                // tableにアップロード
+                                var imageFullPath = StorageUtil.GetImageFullPath(fileName);
+                                await UploadMessageToStorageTable(eventMessage.Message.Id,
+                                    name, string.Empty, imageFullPath,
+                                    StorageUtil.GetImageFullPath(thumbnailFileName), imageFullPath);
+                            }
                         }
                         else
                         {

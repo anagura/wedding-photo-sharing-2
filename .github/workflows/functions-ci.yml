@@ -1,0 +1,20 @@
+name: Azure Functions CI/CD
+
+on:
+  push:
+    branches:
+    - master
+    paths:
+    - 'functions/**'
+
+jobs:
+  build_and_deploy_job:
+    runs-on: ubuntu-latest
+    name: Build and Deploy Job
+    steps:
+    - name: Azure Devops Pipelines Trigger
+      uses: Azure/pipelines@v1
+      with:
+        azure-devops-project-url: 'https://dev.azure.com/aeru-develop/aeru-develop'
+        azure-pipeline-name: 'wedding-photo-sharing-Azure Functions-CI' # name of the Azure pipeline to be triggered
+        azure-devops-token: '${{ secrets.AZURE_DEVOPS_TOKEN_FOR_FUNCTIONS }}'
