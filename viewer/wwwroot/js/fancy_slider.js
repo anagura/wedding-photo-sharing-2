@@ -58,6 +58,7 @@
 
         setIDs();
 
+        // スライドアニメーション後の待機時間
         function afterSlidingHandler() {
             $slider.querySelector(".m--previous-slide").classList.remove("m--active-slide", "m--previous-slide");
             $slider.querySelector(".m--previous-nav-bg").classList.remove("m--active-nav-bg", "m--previous-nav-bg");
@@ -77,6 +78,8 @@
             }
         };
 
+        // スライドアニメーションの表示
+        // 
         function performSliding(slideID) {
             if (sliding) return;
             sliding = true;
@@ -97,11 +100,12 @@
             $activeSlide.classList.add("m--before-sliding");
             $activeControlsBg.classList.add("m--nav-bg-before");
 
-            var layoutTrigger = $activeSlide.offsetTop;
+            var layoutTrigger = $activeSlide.offsetTop; // 謎の処理だが、これがないとアニメーションしない
 
             $activeSlide.classList.add("m--active-slide");
             $activeControlsBg.classList.add("m--active-nav-bg");
 
+            // アニメーションが完了したら
             setTimeout(afterSlidingHandler, slidingAT + slidingDelay);
         };
 
