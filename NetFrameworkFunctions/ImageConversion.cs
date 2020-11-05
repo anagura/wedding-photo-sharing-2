@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 
 namespace NetFrameworkFunctions
 {
-    public static class Function1
+    public static class ImageConversion
     {
-        [FunctionName("Function1")]
+        [FunctionName("ImageConversion")]
         public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequestMessage req, TraceWriter log)
         {
             log.Info("Image Conversion request start.");
@@ -21,10 +21,10 @@ namespace NetFrameworkFunctions
             try
             {
                 var request = await req.Content.ReadAsAsync<ImageConversionRequest>();
-                var image = ImageConverter.GenerateFromXaml(request.XamlData);
+                var image = ImageConverter.ConvertFromXaml(request.XamlData);
                 response.ImageData = image;
                 log.Info("Image Conversion request finished.");
-                return req.CreateResponse(HttpStatusCode.BadRequest, response);
+                return req.CreateResponse(HttpStatusCode.OK, response);
             }
             catch (Exception e)
             {

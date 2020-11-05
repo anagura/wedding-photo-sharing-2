@@ -7,8 +7,5 @@ namespace NetStandardLibraries.Model
     {
         [JsonPropertyName("imageData")]
         public byte[] ImageData { get; set; }
-
-        [JsonPropertyName("imageData")]
-        public string ErrorMessage { get; set; }
     }
 }

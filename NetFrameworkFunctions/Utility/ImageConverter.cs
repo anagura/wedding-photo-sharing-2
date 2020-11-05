@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Markup;
 using System.Windows.Media;
@@ -7,14 +8,37 @@ using System.Windows.Media.Imaging;
 
 namespace NetFrameworkFunctions.Utility
 {
+    /// <summary>
+    /// ImageConverter
+    /// </summary>
     public static class ImageConverter
     {
+        /// <summary>
+        /// xamlをimage変換
+        /// </summary>
+        /// <param name="inputXaml"></param>
+        /// <returns></returns>
+        public static byte[] ConvertFromXaml(string inputXaml)
+        {
+            var pngBytes = new byte[] { };
+            var pngCreationThread =
+            new Thread(() => { pngBytes = GenerateFromXaml(inputXaml); })
+            {
+                IsBackground = true
+            };
+            pngCreationThread.SetApartmentState(ApartmentState.STA);
+            pngCreationThread.Start();
+            pngCreationThread.Join();
+
+            return pngBytes;
+        }
+
         /// <summary>
         /// xamlよりバイト配列生成
         /// </summary>
         /// <param name="xaml"></param>
         /// <returns></returns>
-        public static byte[] GenerateFromXaml(string xaml)
+        private static byte[] GenerateFromXaml(string xaml)
         {
             if (XamlReader.Parse(xaml) is FrameworkElement element)
             {

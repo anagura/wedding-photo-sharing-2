@@ -1,5 +1,5 @@
 /**
- * LineReceiverのローカルテストデータサンプル(LineReceiverTestData.jsをコピペ作成用)
+ * ImageConversionのローカルテストデータサンプル(LineReceiverTestData.jsをコピペ作成用)
  */
 
 module.exports.requestUrl = 'http://localhost:7071';
