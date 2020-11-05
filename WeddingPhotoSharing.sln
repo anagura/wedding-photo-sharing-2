@@ -6,7 +6,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "viewer", "viewer\viewer.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "functions", "functions\functions.csproj", "{AB0B71CF-501D-4A05-9875-A2BA1402CE48}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetFrameworkFunctions", "NetFrameworkFunctions\NetFrameworkFunctions.csproj", "{4CE7F1CA-FB02-4F38-B5F3-CE931CE003CF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetFrameworkFunctions", "NetFrameworkFunctions\NetFrameworkFunctions.csproj", "{4CE7F1CA-FB02-4F38-B5F3-CE931CE003CF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetStandardLibraries", "NetStandardLibraries\NetStandardLibraries.csproj", "{D3E61C7B-30E3-4D78-81B4-004826B89030}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,6 +28,10 @@ Global
 		{4CE7F1CA-FB02-4F38-B5F3-CE931CE003CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4CE7F1CA-FB02-4F38-B5F3-CE931CE003CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4CE7F1CA-FB02-4F38-B5F3-CE931CE003CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3E61C7B-30E3-4D78-81B4-004826B89030}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3E61C7B-30E3-4D78-81B4-004826B89030}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3E61C7B-30E3-4D78-81B4-004826B89030}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3E61C7B-30E3-4D78-81B4-004826B89030}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

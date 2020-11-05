@@ -1,12 +1,12 @@
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
-using NetFrameworkFunctions.Model;
 using NetFrameworkFunctions.Utility;
+using NetStandardLibraries.Model;
+using System;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace NetFrameworkFunctions
 {
@@ -15,28 +15,22 @@ namespace NetFrameworkFunctions
         [FunctionName("Function1")]
         public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequestMessage req, TraceWriter log)
         {
-            log.Info("C# HTTP trigger function processed a request.");
+            log.Info("Image Conversion request start.");
+            var response = new ImageConversionResponse();
 
-            // parse query parameter
-            string name = req.GetQueryNameValuePairs()
-                .FirstOrDefault(q => string.Compare(q.Key, "name", true) == 0)
-                .Value;
-
-            if (name == null)
+            try
             {
-                // Get request body
-                dynamic data = await req.Content.ReadAsAsync<object>();
-                name = data?.name;
+                var request = await req.Content.ReadAsAsync<ImageConversionRequest>();
+                var image = ImageConverter.GenerateFromXaml(request.XamlData);
+                response.ImageData = image;
+                log.Info("Image Conversion request finished.");
+                return req.CreateResponse(HttpStatusCode.BadRequest, response);
             }
-
-            var conversionData = await req.Content.ReadAsAsync<ImageConversionData>();
-            var image = ImageConverter.GenerateFromXaml(conversionData.data);
-
-            return name == null
-                ? req.CreateResponse(HttpStatusCode.BadRequest, "Please pass a name on the query string or in the request body")
-                : req.CreateResponse(HttpStatusCode.OK, "Hello " + name);
+            catch (Exception e)
+            {
+                log.Error($"Error occured {nameof(e)}: {e.StackTrace}");
+                return req.CreateResponse(HttpStatusCode.BadRequest, response);
+            }
         }
     }
-
-
 }
