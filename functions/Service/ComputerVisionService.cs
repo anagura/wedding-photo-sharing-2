@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
-using static functions.Configration.EnvironmentVariables;
+using static NetStandardLibraries.Configration.EnvironmentVariables;
 using static functions.Const.FunctionsConst;
 
 

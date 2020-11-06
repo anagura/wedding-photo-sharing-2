@@ -7,6 +7,7 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using static NetStandardLibraries.Configration.EnvironmentVariables;
 
 namespace NetFrameworkFunctions
 {
@@ -21,6 +22,10 @@ namespace NetFrameworkFunctions
             try
             {
                 var request = await req.Content.ReadAsAsync<ImageConversionRequest>();
+                if (ImageConversionApiKey != request.ApiKey)
+                {
+                    return req.CreateResponse(HttpStatusCode.Unauthorized, response);
+                }
                 var image = ImageConverter.ConvertFromXaml(request.XamlData);
                 response.ImageData = image;
                 log.Info("Image Conversion request finished.");

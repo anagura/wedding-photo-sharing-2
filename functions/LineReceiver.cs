@@ -15,7 +15,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using static functions.Configration.EnvironmentVariables;
+using static NetStandardLibraries.Configration.EnvironmentVariables;
 using static functions.Const.FunctionsConst;
 
 namespace WeddingPhotoSharing

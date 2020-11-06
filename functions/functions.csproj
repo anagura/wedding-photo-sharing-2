@@ -65,6 +65,9 @@
     <PackageReference Include="RazorEngine.NetCore" Version="3.1.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\NetStandardLibraries\NetStandardLibraries.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <None Update="host.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

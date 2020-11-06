@@ -49,7 +49,7 @@ namespace NetFrameworkFunctions.Utility
         }
 
         /// <summary>
-        /// WPFプロパティ
+        /// png取得
         /// </summary>
         /// <param name="element"></param>
         /// <returns></returns>
@@ -65,23 +65,18 @@ namespace NetFrameworkFunctions.Utility
                                      PixelFormats.Pbgra32);
             var sourceBrush = new VisualBrush(element);
             var drawingVisual = new DrawingVisual();
-            using (DrawingContext drawingContext = drawingVisual.RenderOpen())
-            {
-                drawingContext.DrawRectangle(
-                    sourceBrush, null, new Rect(
-                                            new Point(0, 0),
-                                            new Point(element.RenderSize.Width,
-                                            element.RenderSize.Height)));
-                renderTarget.Render(drawingVisual);
-                var pngEncoder = new PngBitmapEncoder();
-                pngEncoder.Frames.Add(BitmapFrame.Create(renderTarget));
-                using (var outputStream = new MemoryStream())
-                {
-                    pngEncoder.Save(outputStream);
-                    return outputStream.ToArray();
-                }
-            }
+            DrawingContext drawingContext = drawingVisual.RenderOpen();
+            drawingContext.DrawRectangle(
+                sourceBrush, null, new Rect(
+                                        new Point(0, 0),
+                                        new Point(element.RenderSize.Width,
+                                        element.RenderSize.Height)));
+            renderTarget.Render(drawingVisual);
+            var pngEncoder = new PngBitmapEncoder();
+            pngEncoder.Frames.Add(BitmapFrame.Create(renderTarget));
+            using var outputStream = new MemoryStream();
+            pngEncoder.Save(outputStream);
+            return outputStream.ToArray();
         }
-
     }
 }

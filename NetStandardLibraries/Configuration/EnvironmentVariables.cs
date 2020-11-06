@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace functions.Configration
+namespace NetStandardLibraries.Configration
 {
     /// <summary>
     /// 環境変数取得用クラス
@@ -56,6 +56,11 @@ namespace functions.Configration
         public static string LineMediaContainerUrlTableName
             => lineMediaContainerUrlTableName
             ??= GetEnvironmentVariable("LineMediaContainerUrlTableName");
+
+        private static string imageConversionApiKey;
+        public static string ImageConversionApiKey
+            => imageConversionApiKey
+            ??= GetEnvironmentVariable("ImageConversionApiKey");
 
         /// <summary>
         /// 指定keyで環境変数より値を取得
