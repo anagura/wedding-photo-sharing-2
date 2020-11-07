@@ -14,7 +14,8 @@ namespace NetFrameworkFunctions
     public static class ImageConversion
     {
         [FunctionName("ImageConversion")]
-        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequestMessage req, TraceWriter log)
+        public static async Task<HttpResponseMessage> Run(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)]HttpRequestMessage req, TraceWriter log)
         {
             log.Info("Image Conversion request start.");
             var response = new ImageConversionResponse();
