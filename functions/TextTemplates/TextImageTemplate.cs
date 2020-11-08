@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using RazorEngine;
+using RazorEngine.Templating;
+using System.IO;
 
 namespace functions.TextTemplates
 {
@@ -19,11 +21,30 @@ namespace functions.TextTemplates
         {
             LimitSize = limitSize;
             ImageName = imageName;
-            var currentDir = Path.Combine(Directory.GetCurrentDirectory(), TemplateDirectoryName);
+            var currentDir = Path.Combine(Directory.GetCurrentDirectory(),
+                TemplateDirectoryName);
             ImagePath = Path.Combine(currentDir, ImageName);
             TemplateName = templateName;
             var templatePath = Path.Combine(currentDir, TemplateName);
             Template = File.ReadAllText(templatePath);
+        }
+
+        /// <summary>
+        /// パースして文字列に変換
+        /// </summary>
+        /// <param name="modelName"></param>
+        /// <param name="textMessage"></param>
+        /// <returns></returns>
+        public string Parse(string modelName, string textMessage)
+        {
+            var model = new
+            {
+                Name = modelName,
+                Text = textMessage,
+                Source = ImagePath,
+            };
+            return Engine.Razor
+                .RunCompile(Template, ImageName, null, model);
         }
 
         /// <summary>

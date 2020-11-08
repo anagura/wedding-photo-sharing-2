@@ -24,6 +24,12 @@ namespace WeddingPhotoSharing
             builder.Services.AddHttpClient<ComputerVisionService>()
                 .AddTransientHttpErrorPolicy(
                 p => p.RetryAsync(HttpClientRetryCountOnError));
+
+            builder.Services.AddScoped<ImageConversionService>();
+            builder.Services.AddHttpClient<ImageConversionService>()
+                .AddTransientHttpErrorPolicy(
+                p => p.RetryAsync(HttpClientRetryCountOnError));
+
         }
     }
 }

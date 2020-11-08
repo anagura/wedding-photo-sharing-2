@@ -29,7 +29,7 @@ namespace NetFrameworkFunctions
                     return req.CreateResponse(HttpStatusCode.Unauthorized, response);
                 }
                 var image = ImageConverter.ConvertFromXaml(request.XamlData);
-                response.ImageData = Encoding.UTF8.GetString(image);
+                response.ImageData = image;
                 log.Info("Image Conversion request finished.");
                 return req.CreateResponse(HttpStatusCode.OK, response);
             }
