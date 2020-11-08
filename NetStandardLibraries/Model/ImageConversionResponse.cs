@@ -6,6 +6,6 @@ namespace NetStandardLibraries.Model
     public class ImageConversionResponse
     {
         [JsonPropertyName("imageData")]
-        public byte[] ImageData { get; set; }
+        public string ImageData { get; set; }
     }
 }

@@ -6,6 +6,7 @@ using NetStandardLibraries.Model;
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using static NetStandardLibraries.Configration.EnvironmentVariables;
 
@@ -28,7 +29,7 @@ namespace NetFrameworkFunctions
                     return req.CreateResponse(HttpStatusCode.Unauthorized, response);
                 }
                 var image = ImageConverter.ConvertFromXaml(request.XamlData);
-                response.ImageData = image;
+                response.ImageData = Encoding.UTF8.GetString(image);
                 log.Info("Image Conversion request finished.");
                 return req.CreateResponse(HttpStatusCode.OK, response);
             }
