@@ -6,6 +6,7 @@
         return [].slice.call(elements);
     };
     var numOfSlides = 0;
+    var autoSlidingTO;
 
     function _fncSliderInit($slider, options) {
         var prefix = ".fnc-";
@@ -24,7 +25,6 @@
         var slidingDelay = +parseFloat(getComputedStyle($slidesCont)["transition-delay"]) * 1000;
 
         var autoSlidingActive = false;
-        var autoSlidingTO;
         var autoSlidingDelay = 5000; // default autosliding delay value
         var autoSlidingBlocked = false;
 
@@ -122,9 +122,12 @@
             performSliding(slideID);
         };
 
-        $controls.forEach(function ($control) {
-            $control.removeEventListener("click", controlClickHandler);
-            $control.addEventListener("click", controlClickHandler);
+        $controls.forEach(function ($control, index) {
+            const key = "fnc-listener-add-" + (index + 1);
+            if (!$control.classList.contains(key)) {
+                $control.classList.add(key);
+                $control.addEventListener("click", controlClickHandler);
+            }
         });
 
         function setAutoslidingTO() {
@@ -160,6 +163,13 @@
             }
 
             $slider.querySelector(".fnc-nav__control:first-child").classList.add("m--active-control");
+        } else {
+            var delay = +options.autoSlidingDelay || autoSlidingDelay;
+            delay += slidingDelay + slidingAT;
+
+            $progressAS.forEach(function ($progress) {
+                $progress.style.transition = "transform " + (delay / 1000) + "s";
+            });
         }
 
     };
