@@ -1,11 +1,7 @@
-﻿
-using System.Text.Json.Serialization;
-
-namespace NetStandardLibraries.Model
+﻿namespace NetStandardLibraries.Model
 {
     public class ImageConversionResponse
     {
-        [JsonPropertyName("imageData")]
         public byte[] ImageData { get; set; }
     }
 }

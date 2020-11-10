@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using static functions.Configration.EnvironmentVariables;
+using static NetStandardLibraries.Configration.EnvironmentVariables;
 
 namespace functions.Utility
 {

@@ -1,7 +1,7 @@
 ﻿using functions.Const;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System.Collections.Generic;
-using static functions.Configration.EnvironmentVariables;
+using static NetStandardLibraries.Configration.EnvironmentVariables;
 
 namespace functions.Storage
 {

@@ -62,6 +62,11 @@ namespace NetStandardLibraries.Configration
             => imageConversionApiKey
             ??= GetEnvironmentVariable("ImageConversionApiKey");
 
+        private static string imageConversionUri;
+        public static string ImageConversionUri
+            => imageConversionUri
+            ??= GetEnvironmentVariable("ImageConversionUri");
+
         /// <summary>
         /// 指定keyで環境変数より値を取得
         /// </summary>

@@ -17,6 +17,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using static NetStandardLibraries.Configration.EnvironmentVariables;
 using static functions.Const.FunctionsConst;
+using System.Net;
 
 namespace WeddingPhotoSharing
 {
@@ -28,14 +29,17 @@ namespace WeddingPhotoSharing
         static LineMessagingClient lineMessagingClient;
 
         private readonly ComputerVisionService _computerVisionService;
+        private readonly ImageConversionService _imageConversionService;
 
         /// <summary>
         /// コンストラクタ
         /// </summary>
         /// <param name="computerVisionService"></param>
-        public LineReceiver(ComputerVisionService computeVisionService)
+        public LineReceiver(ComputerVisionService computeVisionService,
+            ImageConversionService imageConversionService)
         {
             _computerVisionService = computeVisionService;
+            _imageConversionService = imageConversionService;
         }
 
         [FunctionName("LineReceiver")]
@@ -92,7 +96,13 @@ namespace WeddingPhotoSharing
                             var template = TextImageTemplateAccessor.PickRamdom(maxLength);
 
                             // テンプレートよりバイト配列生成
-                            byte[] image = ImageGenerator.Generate(template, result.Name, textMessage);
+                            var inputXaml = template.Parse(result.Name, textMessage);
+                            var conversionResult = await _imageConversionService.ConvertFromXaml(inputXaml);
+                            if (conversionResult.StatusCode != HttpStatusCode.OK)
+                            {
+                                throw new Exception($"ImageConversionService is invalid status:{conversionResult.StatusCode}");
+                            }
+                            var image = conversionResult.ImageData;
 
                             // ストレージテーブルに格納
                             await StorageUtil.UploadImage(
