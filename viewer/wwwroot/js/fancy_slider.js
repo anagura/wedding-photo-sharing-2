@@ -7,6 +7,13 @@
     };
     var numOfSlides = 0;
     var autoSlidingTO;
+    var autoSlidingActive = false;
+    var autoSlidingBlocked = false;
+    var curSlide = 1;
+    var sliding = false;
+    var $activeSlide;
+    var $activeControlsBg;
+    var $prevControl;
 
     function _fncSliderInit($slider, options) {
         var prefix = ".fnc-";
@@ -19,18 +26,11 @@
         var $progressAS = $$(prefix + "nav__control-progress", $slider);
 
         numOfSlides = $slides.length;
-        var curSlide = 1;
-        var sliding = false;
         var slidingAT = +parseFloat(getComputedStyle($slidesCont)["transition-duration"]) * 1000;
         var slidingDelay = +parseFloat(getComputedStyle($slidesCont)["transition-delay"]) * 1000;
 
-        var autoSlidingActive = false;
         var autoSlidingDelay = 5000; // default autosliding delay value
-        var autoSlidingBlocked = false;
 
-        var $activeSlide;
-        var $activeControlsBg;
-        var $prevControl;
 
         function setIDs() {
             $slides.forEach(function ($slide, index) {
