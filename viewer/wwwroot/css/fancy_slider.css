@@ -213,8 +213,8 @@
 .fnc-slide__content {
     z-index: 2;
     position: absolute;
-    left: 40%;
-    top: 40%;
+    left: 10%;
+    top: 74%;
 }
 
 .fnc-slide__heading {
