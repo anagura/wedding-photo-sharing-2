@@ -14,6 +14,7 @@
     var $activeSlide;
     var $activeControlsBg;
     var $prevControl;
+    var nextSlideId = 0;
 
     function _fncSliderInit($slider, options) {
         var prefix = ".fnc-";
@@ -37,6 +38,10 @@
                 const key = "fnc-slide-" + (index + 1);
                 if (!$slide.classList.contains(key)) {
                     $slide.classList.add(key);
+                    if (!options.isInitialize) {
+                        // 追加されたスライドを次に表示する
+                        nextSlideId = index + 1;
+                    }
                 }
             });
 
@@ -79,11 +84,16 @@
         };
 
         // スライドアニメーションの表示
-        // 
         function performSliding(slideID) {
             if (sliding) return;
             sliding = true;
             window.clearTimeout(autoSlidingTO);
+
+            // 表示予約があったらそれを表示
+            if (nextSlideId > 0) {
+                slideID = nextSlideId;
+                nextSlideId = 0;
+            }
             curSlide = slideID;
 
             $prevControl = $slider.querySelector(".m--active-control");
@@ -110,8 +120,15 @@
         };
 
         function controlClickHandler() {
+            // 自分自身を表示中だったら処理しない
             if (sliding) return;
+
             if (this.classList.contains("m--active-control")) return;
+
+            // 表示予約があったらキャンセルする
+            if (nextSlideId > 0) {
+                nextSlideId = 0;
+            }
             if (options.blockASafterClick) {
                 autoSlidingBlocked = true;
                 $slider.classList.add("m--autosliding-blocked");
