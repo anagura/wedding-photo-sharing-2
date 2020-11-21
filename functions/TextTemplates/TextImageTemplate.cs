@@ -21,6 +21,13 @@ namespace functions.TextTemplates
         {
             LimitSize = limitSize;
             ImageName = imageName;
+
+            var files = Directory.GetFiles(Directory.GetCurrentDirectory());
+            foreach (var item in files)
+            {
+                System.Console.WriteLine($"CurrentDirectory.File:{item}");
+            }
+
             var currentDir = Path.Combine(Directory.GetCurrentDirectory(),
                 TemplateDirectoryName);
             ImagePath = Path.Combine(currentDir, ImageName);
