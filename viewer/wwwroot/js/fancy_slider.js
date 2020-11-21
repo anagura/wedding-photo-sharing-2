@@ -38,7 +38,7 @@
                 const key = "fnc-slide-" + (index + 1);
                 if (!$slide.classList.contains(key)) {
                     $slide.classList.add(key);
-                    if (!options.isInitialize) {
+                    if (!options.isInitialize && nextSlideId == 0) {
                         // 追加されたスライドを次に表示する
                         nextSlideId = index + 1;
                     }
