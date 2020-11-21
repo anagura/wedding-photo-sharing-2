@@ -23,7 +23,7 @@ namespace functions.TextTemplates
             LimitSize = limitSize;
             ImageName = imageName;
 
-            var currentDir = Path.Combine(Assembly.GetExecutingAssembly().Location,
+            var currentDir = Path.Combine(Path.GetFullPath("." + Path.DirectorySeparatorChar),
                 TemplateDirectoryName);
             ImagePath = Path.Combine(currentDir, ImageName);
             TemplateName = templateName;
