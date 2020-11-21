@@ -1,7 +1,7 @@
 ﻿using RazorEngine;
 using RazorEngine.Templating;
 using System.IO;
-using System.Reflection;
+using static NetStandardLibraries.Configration.EnvironmentVariables;
 
 namespace functions.TextTemplates
 {
@@ -23,8 +23,9 @@ namespace functions.TextTemplates
             LimitSize = limitSize;
             ImageName = imageName;
 
-            var currentDir = Path.Combine(Path.GetFullPath("." + Path.DirectorySeparatorChar),
-                TemplateDirectoryName);
+            var baseDir = TextImageTemplatePath
+                ?? Path.GetFullPath("." + Path.DirectorySeparatorChar);
+            var currentDir = Path.Combine(baseDir, TemplateDirectoryName);
             ImagePath = Path.Combine(currentDir, ImageName);
             TemplateName = templateName;
             var templatePath = Path.Combine(currentDir, TemplateName);

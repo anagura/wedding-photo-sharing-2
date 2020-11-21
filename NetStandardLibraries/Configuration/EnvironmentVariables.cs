@@ -67,6 +67,11 @@ namespace NetStandardLibraries.Configration
             => imageConversionUri
             ??= GetEnvironmentVariable("ImageConversionUri");
 
+        private static string textImageTemplatePath;
+        public static string TextImageTemplatePath
+            => textImageTemplatePath
+            ??= GetEnvironmentVariable("TextImageTemplatePath");
+
         /// <summary>
         /// 指定keyで環境変数より値を取得
         /// </summary>
