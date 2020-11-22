@@ -96,16 +96,16 @@ namespace functions.Service
         public async ValueTask<Stream> GenerateThumbnailStreamAsync(
             byte[] buffer, int width, int height, bool smartCropping = false)
         {
+            var calcWidth = width;
             var standardHeight = ThumbnailImageStandardHeight;
             if (height > standardHeight)
             {
                 var ratio = standardHeight / (float)height;
-                var calcWidth = (int)(width * ratio);
-                using var stream = new MemoryStream(buffer);
-                return await _computerVisionClient.GenerateThumbnailInStreamAsync(
-                    calcWidth, standardHeight, stream, smartCropping);
+                calcWidth = (int)(width * ratio);
             }
-            return null;
+            using var stream = new MemoryStream(buffer);
+            return await _computerVisionClient.GenerateThumbnailInStreamAsync(
+                calcWidth, standardHeight, stream, smartCropping);
         }
     }
 }
