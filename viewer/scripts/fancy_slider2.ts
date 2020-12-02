@@ -32,6 +32,8 @@ class fancySlider {
         });
     }
 
+    private numOfSlides:Number = 0;
+    
     private init = (slider: HTMLCollection, options: options) => {
         console.log(slider);
         console.log(options);
