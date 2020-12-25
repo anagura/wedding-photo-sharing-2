@@ -6,12 +6,6 @@
 @using System.Threading
 @using viewer.Components
 
-<!--
-Please note, that you can apply .m--global-blending-active to .fnc-slider
-to enable blend-mode for all background-images or apply .m--blend-bg-active
-to some specific slides (.fnc-slide). It's disabled by default in this demo,
-because it requires specific images, where more than 50% of bg is transparent or monotone
--->
 @if (messages.Count == 0)
 {
     <p><em>Fetching images. please wait...</em></p>
@@ -21,25 +15,44 @@ else
     <div class="demo-cont">
         <div class="fnc-slider example-slider">
             <div class="fnc-slider__slides">
-                @foreach (var image in messages)
-                {
-                    <Slide isActive="@image.Value.IsActive" blendType="@image.Value.BlendType" name="@image.Value.Name" image="@image.Value.ImageUrl" />
+                @{
+                    var idx = 0;
+                    foreach (var image in messages)
+                    {
+                        bool isActive = idx == activeSlideId;
+                        bool isPrev = isPrevious(idx);
+
+                        <Slide isActive="@isActive" isPrev="isPrev" blendType="@image.Value.BlendType" name="@image.Value.Name" image="@image.Value.ImageUrl" />
+                        idx++;
+                    }
                 }
             </div>
             <nav class="fnc-nav">
                 <div class="fnc-nav__bgs">
-                    @foreach (var image in messages)
-                    {
-                        <div class="fnc-nav__bg @bgBlendType(@image.Value.BlendType) @bgIsActive(@image.Value.IsActive)"></div>
+                    @{
+                        var nav_bg_idx = 0;
+                        foreach (var image in messages)
+                        {
+                            string activeNav = nav_bg_idx == activeSlideId ? "m--active-nav-bg" : "";
+                            string prevNav = isPrevious(nav_bg_idx) ? "m--previous-nav-bg" : "";
+                            <div class="fnc-nav__bg @activeNav @prevNav @bgBlendType(@image.Value.BlendType) @bgIsActive(@image.Value.IsActive)"></div>
+                            nav_bg_idx++;
+                        }
                     }
                 </div>
                 <div class="fnc-nav__controls">
-                    @foreach (var image in messages)
-                    {
-                        <button class="fnc-nav__control">
-                            @image.Value.Name
-                            <span class="fnc-nav__control-progress"></span>
-                        </button>
+                    @{
+                        var control_idx = 0;
+                        foreach (var image in messages)
+                        {
+                            string activeControl = control_idx == activeSlideId ? "m--active-control" : "";
+                            string prevControl = isPrevious(control_idx) ? "m--prev-control" : "";
+                            <button class="fnc-nav__control @activeControl @prevControl" >
+                                @image.Value.Name
+                                <span class="fnc-nav__control-progress" style="transition: transform 5.66667s ease 0s;"></span>
+                            </button>
+                            control_idx++;
+                        }
                     }
                 </div>
             </nav>
@@ -53,7 +66,28 @@ else
     private Dictionary<long, MessageEntity> messages = new Dictionary<long, MessageEntity>();
 
     private bool inTimer = false;
-    private readonly int delay = 10000;
+    private readonly int checkNewImageInterval = 10000;
+    private readonly int slideingInterval = 5000;
+
+    private int activeSlideId = 0;
+    private bool isSetPrev = false;
+
+    private bool isPrevious(int idx)
+    {
+        if (!isSetPrev)
+        {
+            return false;
+        }
+        if (activeSlideId == 0 && idx == (messages.Count - 1))
+        {
+            return true;
+        }
+        else if (idx == (activeSlideId - 1))
+        {
+            return true;
+        }
+        return false;
+    }
 
     private async Task AddSlide()
     {
@@ -106,6 +140,17 @@ else
         inTimer = false;
     }
 
+    private void ChangeSlide(object state)
+    {
+        isSetPrev = true;
+        activeSlideId++;
+        if ((activeSlideId+1) > messages.Count)
+        {
+            activeSlideId = 0;
+        }
+        this.StateHasChanged();
+    }
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -125,22 +170,8 @@ else
             Console.WriteLine(ex.ToString());
         }
 
-        var timer = new Timer(async o => await HandleTimerCallback(o), null, delay, delay);
-    }
-
-    public async Task TriggerJsPrompt(bool isInitialize)
-    {
-        await JSRuntime.InvokeVoidAsync(
-            "initialize_slider", new object[] { isInitialize });
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender && messages != null && !initialized)
-        {
-            await TriggerJsPrompt(initializeJs);
-            initialized = true;
-        }
+        new Timer(o => ChangeSlide(o), null, slideingInterval, slideingInterval);
+        new Timer(async o => await HandleTimerCallback(o), null, checkNewImageInterval, checkNewImageInterval);
     }
 
     public class MessageEntity

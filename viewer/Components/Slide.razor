@@ -1,5 +1,5 @@
 ﻿
-<div class="fnc-slide @_brendType @_active">
+<div class="fnc-slide @_brendType @_active @_prev">
     <div class="fnc-slide__inner" style="background-image: url('@image');">
         <div class="fnc-slide__mask">
             <div class="fnc-slide__mask-inner" style="background-image: url('@image');"></div>
@@ -25,6 +25,9 @@
 
     [Parameter]
     public bool isActive { set; get; }
+
+    [Parameter]
+    public bool isPrev { set; get; }
 
     [Parameter]
     public BlendType blendType { set; get; }
@@ -62,6 +65,14 @@
         get
         {
             return isActive ? "m--active-slide" : "";
+        }
+    }
+
+    private string _prev
+    {
+        get
+        {
+            return isPrev ? "m--prev-control" : "";
         }
     }
 }
