@@ -1,0 +1,81 @@
+<html>
+  <head>
+    <style>
+      .base {
+        width: 100px;
+        height: 50px;
+        position: relative;
+		overflow: hidden;
+        -webkit-transition: background-color 1s;
+        transition: background-color 1s;
+      }
+
+      .p-base {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        height: 20px;
+        background: red;
+        -webkit-transform-origin: 0 50%;
+        transform-origin: 0 50%;
+        -webkit-transform: scaleX(0);
+        transform: scaleX(0);
+        -webkit-transition-timing-function: linear !important;
+        transition-timing-function: linear !important;
+        transition: transform 2s ease 0s;
+      }
+
+      .progress {
+        -webkit-transform: scaleX(1);
+        transform: scaleX(1);
+      }
+      .end {
+        -webkit-transform: translateX(100%);
+        transform: translateX(100%);
+        -webkit-transition: -webkit-transform 0.5s !important;
+        transition: -webkit-transform 0.5s !important;
+        transition: transform 0.5s !important;
+        transition: transform 0.5s, -webkit-transform 0.5s !important;
+      }
+      .reset {
+        -webkit-transform: scaleX(0);
+        transform: scaleX(0);
+        -webkit-transition: -webkit-transform 0s 0s !important;
+        transition: -webkit-transform 0s 0s !important;
+        transition: transform 0s 0s !important;
+        transition: transform 0s 0s, -webkit-transform 0s 0s !important;
+      }
+    </style>
+    <script>
+      const standby = () => {
+        const div = document.getElementById("p");
+        div.classList.remove("reset");
+        div.classList.add("progress");
+        setTimeout(progress, 2000);
+      };
+
+      const progress = () => {
+        const div = document.getElementById("p");
+        div.classList.remove("progress");
+        div.classList.add("end");
+        setTimeout(reset, 1000);
+      };
+
+      const reset = () => {
+        const div = document.getElementById("p");
+        div.classList.remove("end");
+        div.classList.add("reset");
+        setTimeout(standby, 1000);
+      };
+
+      setTimeout(standby, 3000);
+    </script>
+  </head>
+  <body>
+    <br />
+    <div id="test" class="base b">
+      <div id="p" class="p-base"></div>
+    </div>
+  </body>
+</html>
