@@ -8,7 +8,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "functions", "functions\func
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetFrameworkFunctions", "NetFrameworkFunctions\NetFrameworkFunctions.csproj", "{4CE7F1CA-FB02-4F38-B5F3-CE931CE003CF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetStandardLibraries", "NetStandardLibraries\NetStandardLibraries.csproj", "{D3E61C7B-30E3-4D78-81B4-004826B89030}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetStandardLibraries", "NetStandardLibraries\NetStandardLibraries.csproj", "{D3E61C7B-30E3-4D78-81B4-004826B89030}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,53 +1,16 @@
-﻿@page "/slider"
+﻿using Microsoft.JSInterop;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using viewer.Components;
 
-@inject IJSRuntime JSRuntime
-@inject HttpClient Http
-
-@using System.Threading
-@using viewer.Components
-
-<!--
-Please note, that you can apply .m--global-blending-active to .fnc-slider
-to enable blend-mode for all background-images or apply .m--blend-bg-active
-to some specific slides (.fnc-slide). It's disabled by default in this demo,
-because it requires specific images, where more than 50% of bg is transparent or monotone
--->
-@if (messages.Count == 0)
+namespace viewer.Pages
 {
-    <p><em>Fetching images. please wait...</em></p>
-}
-else
-{
-    <div class="demo-cont">
-        <div class="fnc-slider example-slider">
-            <div class="fnc-slider__slides">
-                @foreach (var image in messages)
-                {
-                    <Slide isActive="@image.Value.IsActive" blendType="@image.Value.BlendType" name="@image.Value.Name" image="@image.Value.ImageUrl" />
-                }
-            </div>
-            <nav class="fnc-nav">
-                <div class="fnc-nav__bgs">
-                    @foreach (var image in messages)
-                    {
-                        <div class="fnc-nav__bg @bgBlendType(@image.Value.BlendType) @bgIsActive(@image.Value.IsActive)"></div>
-                    }
-                </div>
-                <div class="fnc-nav__controls">
-                    @foreach (var image in messages)
-                    {
-                        <button class="fnc-nav__control">
-                            @image.Value.Name
-                            <span class="fnc-nav__control-progress"></span>
-                        </button>
-                    }
-                </div>
-            </nav>
-        </div>
-    </div>
-}
-
-@code {
+    public partial class Slider
+    {
     private bool initializeJs = true;
     private bool initialized;
     private Dictionary<long, MessageEntity> messages = new Dictionary<long, MessageEntity>();
@@ -182,5 +145,7 @@ else
                 return result;
             }
         }
+    }
+
     }
 }
