@@ -5,6 +5,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Table;
+using Microsoft.WindowsAzure.Storage.Queue;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,17 +20,23 @@ namespace functions.Utility
 
         public readonly BlobContainerProvider _blobContainer;
         private readonly CloudTable _containerUrlTable;
+        private readonly CloudQueue _containerUriQueue;
 
         private StorageUtil()
         {
             StorageCredentials storageCredentials = new StorageCredentials(
                 StorageAccountName, StorageAccountKey);
+
             CloudStorageAccount storageAccount = new CloudStorageAccount(
                 storageCredentials, true);
+
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
             _blobContainer = new BlobContainerProvider(blobClient);
             var tableClient = storageAccount.CreateCloudTableClient();
             _containerUrlTable = tableClient.GetTableReference(LineMediaContainerUrlTableName);
+
+            CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
+            _containerUriQueue = queueClient.GetQueueReference(LineTextContainerUrlQueueName);
         }
 
         /// <summary>
@@ -105,5 +112,18 @@ namespace functions.Utility
 
             return result;
         }
+
+        public static async Task InsertQueueAsync(string message)
+        {
+            _instance ??= new StorageUtil();
+            await _instance.AddMessageToQueueAsync(message);
+        }
+
+        private async Task AddMessageToQueueAsync(string message)
+        {
+            await _containerUriQueue.CreateIfNotExistsAsync();
+            await _containerUriQueue.AddMessageAsync(new CloudQueueMessage(message));
+        }
+
     }
 }
