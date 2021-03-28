@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using static NetStandardLibraries.Configration.EnvironmentVariables;
 using static functions.Const.FunctionsConst;
 using System.Net;
+using NetStandardLibraries.Model;
 
 namespace WeddingPhotoSharing
 {
@@ -91,22 +92,7 @@ namespace WeddingPhotoSharing
                                 textMessage = textMessage.Substring(0, MessageMaxLength) + "...";
                                 suffix = $"{Environment.NewLine}メッセージが長いため、途中までしか表示されません。{MessageMaxLength.ToString()}文字以内で入力をお願いします。";
                             }
-
-                            // テンプレートよりランダム抽出
-                            var template = TextImageTemplateAccessor.PickRamdom(maxLength);
-
-                            // テンプレートよりバイト配列生成
-                            var inputXaml = template.Parse(result.Name, textMessage);
-                            var conversionResult = await _imageConversionService.ConvertFromXaml(inputXaml);
-                            if (conversionResult.StatusCode != HttpStatusCode.OK)
-                            {
-                                throw new Exception($"ImageConversionService is invalid status:{conversionResult.StatusCode}");
-                            }
-                            var image = conversionResult.ImageData;
-
-                            // ストレージテーブルに格納
-                            await StorageUtil.UploadImage(
-                                image, fileName);
+                            await InsertMessageToQueue(eventMessage.Message.Id,result.Name, textMessage);
 
                             result.Message = textMessage;
                         }
@@ -139,7 +125,7 @@ namespace WeddingPhotoSharing
                             // サムネイル化
                             var thumbnailFileName = string.Empty;
                             var thumbnailStream = await _computerVisionService.GenerateThumbnailStreamAsync(
-                                lineResult.Result, 
+                                lineResult.Result,
                                 analyzeResult.Metadata.Width / 4,
                                 analyzeResult.Metadata.Height / 4,
                                 true);
@@ -204,11 +190,22 @@ namespace WeddingPhotoSharing
                 Name = name,
                 Message = message,
                 ImageUrl = imageUrl,
-                ThunbnailImageUrl= thumbnailImageUrl,
+                ThunbnailImageUrl = thumbnailImageUrl,
                 RawImageUrl = rawImageUrl
             };
 
             return await StorageUtil.UploadMessageAsync(tableMessage);
+        }
+
+        private static async Task InsertMessageToQueue(long id, string name, string message)
+        {
+            var entity = new MessageEntity()
+            {
+                Id = id,
+                Name = name,
+                Message = message
+            };
+            await StorageUtil.InsertQueueAsync(JsonSerializer.Serialize(entity));
         }
     }
 }
