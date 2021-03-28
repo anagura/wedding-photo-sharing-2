@@ -1,0 +1,108 @@
+﻿<Project Sdk="Microsoft.NET.Sdk;Microsoft.NET.Sdk.Publish">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <IsWebJobProject>true</IsWebJobProject>
+    <WebJobName>$(AssemblyName)</WebJobName>
+    <WebJobType>Continuous</WebJobType>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="TextTemplates\12071.png" />
+    <None Remove="TextTemplates\29831.png" />
+    <None Remove="TextTemplates\29831.xaml" />
+    <None Remove="TextTemplates\51881.png" />
+    <None Remove="TextTemplates\51881.xaml" />
+    <None Remove="TextTemplates\51893.png" />
+    <None Remove="TextTemplates\82096.png" />
+    <None Remove="TextTemplates\Big8.xaml" />
+    <None Remove="TextTemplates\Middle10.xaml" />
+    <None Remove="TextTemplates\TextPanel.xaml" />
+    <None Remove="TextTemplates\TextPanelBig.xaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="TextTemplates\12071.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </Content>
+    <Content Include="TextTemplates\29831.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </Content>
+    <Content Include="TextTemplates\51881.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </Content>
+    <Content Include="TextTemplates\51893.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </Content>
+    <Content Include="TextTemplates\82096.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="TextTemplates\29831.xaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+      <Generator>MSBuild:Compile</Generator>
+    </Content>
+    <Content Include="TextTemplates\51881.xaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+      <Generator>MSBuild:Compile</Generator>
+    </Content>
+    <Content Include="TextTemplates\Big8.xaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+      <Generator>MSBuild:Compile</Generator>
+    </Content>
+    <Content Include="TextTemplates\Middle10.xaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+      <Generator>MSBuild:Compile</Generator>
+    </Content>
+    <Content Include="TextTemplates\TextPanel.xaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+      <Generator>MSBuild:Compile</Generator>
+    </Content>
+    <Content Include="TextTemplates\TextPanelBig.xaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+      <Generator>MSBuild:Compile</Generator>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="RazorEngine" Version="3.10.0" />
+    <PackageReference Include="System.Spatial" Version="5.8.4" />
+    <PackageReference Include="Microsoft.Data.Edm" Version="5.8.4" />
+    <PackageReference Include="Microsoft.Data.OData" Version="5.8.4" />
+    <PackageReference Include="Microsoft.Data.Services.Client" Version="5.8.4" />
+    <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager" Version="3.2.1" />
+    <PackageReference Include="WindowsAzure.Storage" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Core" Version="1.1.2" />
+    <PackageReference Include="Microsoft.Azure.WebJobs" Version="1.1.2" />
+    <PackageReference Include="Microsoft.Azure.KeyVault.Core" Version="1.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ImageGenerator\ImageGeneration\ImageGeneration.csproj" />
+    <ProjectReference Include="..\NetStandardLibraries\NetStandardLibraries.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="local.settings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+    </None>
+    <None Update="Settings.job">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

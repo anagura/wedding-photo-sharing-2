@@ -6,6 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Utility\**" />
+    <EmbeddedResource Remove="Utility\**" />
+    <None Remove="Utility\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="System.Text.Json" Version="4.7.2" />
   </ItemGroup>
 
