@@ -36,7 +36,7 @@ namespace NetFrameworkWebJob
             dynamic viewModel = new ExpandoObject();
             viewModel.Name = entity.Name;
             viewModel.Text = DateTime.Now.Ticks.ToString();
-            var image = ImageGenerator.GenerateImage(inputXaml, viewModel);
+            var image = ImageGenerator.GenerateImage(inputXaml, viewModel, Guid.NewGuid().ToString());
             Console.WriteLine($"image size is {image.Length}");
             log.WriteLine($"image size is {image.Length}");
 

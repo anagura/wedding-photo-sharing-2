@@ -87,7 +87,7 @@
     <PackageReference Include="Microsoft.Azure.KeyVault.Core" Version="1.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\ImageGenerator\ImageGeneration\ImageGeneration.csproj" />
+    <ProjectReference Include="..\ImageGenerator\ImageGeneration\ImageGeneration.csproj" />
     <ProjectReference Include="..\NetStandardLibraries\NetStandardLibraries.csproj" />
   </ItemGroup>
   <ItemGroup>

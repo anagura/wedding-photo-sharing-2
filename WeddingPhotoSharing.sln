@@ -12,7 +12,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetStandardLibraries", "Net
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetFrameworkWebJob", "NetFrameworkWebJob\NetFrameworkWebJob.csproj", "{85381F2C-30FB-4DE3-B079-F9810B38C451}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageGeneration", "..\ImageGenerator\ImageGeneration\ImageGeneration.csproj", "{C2CE67E4-F009-4990-AAE5-40DDF0218C7F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageGeneration", "ImageGenerator\ImageGeneration\ImageGeneration.csproj", "{C2CE67E4-F009-4990-AAE5-40DDF0218C7F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
