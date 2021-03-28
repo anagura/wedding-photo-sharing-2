@@ -92,7 +92,7 @@ namespace WeddingPhotoSharing
                                 textMessage = textMessage.Substring(0, MessageMaxLength) + "...";
                                 suffix = $"{Environment.NewLine}メッセージが長いため、途中までしか表示されません。{MessageMaxLength.ToString()}文字以内で入力をお願いします。";
                             }
-                            await InsertMessageToQueue(result.Name, textMessage);
+                            await InsertMessageToQueue(eventMessage.Message.Id,result.Name, textMessage);
 
                             result.Message = textMessage;
                         }
@@ -197,10 +197,11 @@ namespace WeddingPhotoSharing
             return await StorageUtil.UploadMessageAsync(tableMessage);
         }
 
-        private static async Task InsertMessageToQueue(string name, string message)
+        private static async Task InsertMessageToQueue(long id, string name, string message)
         {
             var entity = new MessageEntity()
             {
+                Id = id,
                 Name = name,
                 Message = message
             };

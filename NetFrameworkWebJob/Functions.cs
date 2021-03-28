@@ -1,6 +1,9 @@
+using functions.Model;
 using functions.TextTemplates;
+using functions.Utility;
 using ImageGeneration;
 using Microsoft.Azure.WebJobs;
+using Microsoft.WindowsAzure.Storage.Table;
 using NetStandardLibraries.Model;
 using System;
 using System.Collections.Generic;
@@ -17,7 +20,7 @@ namespace NetFrameworkWebJob
     {
         // This function will get triggered/executed when a new message is written 
         // on an Azure Queue called queue.
-        public static Task ProcessQueueMessage([QueueTrigger("messages")] string message, TextWriter log)
+        public static async Task ProcessQueueMessage([QueueTrigger("messages")] string message, TextWriter log)
         {
             log.WriteLine($"new message is {message}");
 
@@ -25,24 +28,41 @@ namespace NetFrameworkWebJob
             log.WriteLine($"new message is {entity.Name}, {entity.Message}");
             Console.WriteLine($"new message is {entity.Name}, {entity.Message}");
 
-            // ƒeƒ“ƒvƒŒ[ƒg‚æ‚èƒ‰ƒ“ƒ_ƒ€’Šo
+            // ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆã‚ˆã‚Šãƒ©ãƒ³ãƒ€ãƒ æŠ½å‡º
             var template = TextImageTemplateAccessor.PickRamdom(entity.Message.Length);
 
-            // ƒeƒ“ƒvƒŒ[ƒg‚æ‚èƒoƒCƒg”z—ñ¶¬
+            // ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆã‚ˆã‚Šãƒã‚¤ãƒˆé…åˆ—ç”Ÿæˆ
             var inputXaml = template.Parse(entity.Name, entity.Message);
-//            var image = ImageConverter.ConvertFromXaml(inputXaml);
             dynamic viewModel = new ExpandoObject();
             viewModel.Name = entity.Name;
-            viewModel.Text = entity.Message;
+            viewModel.Text = DateTime.Now.Ticks.ToString();
             var image = ImageGenerator.GenerateImage(inputXaml, viewModel);
+            Console.WriteLine($"image size is {image.Length}");
+            log.WriteLine($"image size is {image.Length}");
 
-            FileStream fs = new FileStream("test.png", FileMode.Create);
-            BinaryWriter bw = new BinaryWriter(fs);
-            bw.Write(image);
-            bw.Close();
-            fs.Close();
+            var imageFullPath = StorageUtil.GetImageFullPath($"{entity.Id}.png");
 
-            return Task.CompletedTask;
+            // ç”»åƒã‚’ã‚¹ãƒˆãƒ¬ãƒ¼ã‚¸ã«ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰
+            await StorageUtil.UploadImage(image, $"{entity.Id}.png");
+
+            await UploadMessageToStorageTable(entity.Id, entity.Name, entity.Message, imageFullPath, imageFullPath, imageFullPath);
+
+        }
+        private static async ValueTask<TableResult> UploadMessageToStorageTable(
+            long id, string name, string message, string imageUrl, string thumbnailImageUrl, string rawImageUrl)
+        {
+            // ãƒ†ãƒ¼ãƒ–ãƒ«ã‚¹ãƒˆãƒ¬ãƒ¼ã‚¸ã«æ ¼ç´
+            var tableMessage = new LineMessageEntity(name, id.ToString())
+            {
+                Id = id,
+                Name = name,
+                Message = message,
+                ImageUrl = imageUrl,
+                ThunbnailImageUrl = thumbnailImageUrl,
+                RawImageUrl = rawImageUrl
+            };
+
+            return await StorageUtil.UploadMessageAsync(tableMessage);
         }
     }
 }
