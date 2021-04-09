@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace functions.Extension
+namespace NetStandardLibraries.Extension
 {
     /// <summary>
     /// IEnumerable<T>拡張メソッド

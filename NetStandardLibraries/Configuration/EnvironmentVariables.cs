@@ -57,6 +57,11 @@ namespace NetStandardLibraries.Configration
             => lineMediaContainerUrlTableName
             ??= GetEnvironmentVariable("LineMediaContainerUrlTableName");
 
+        private static string lineTextContainerUrlQueueName;
+        public static string LineTextContainerUrlQueueName
+            => lineTextContainerUrlQueueName
+            ??= GetEnvironmentVariable("LineTextContainerUrlQueueName");
+
         private static string imageConversionApiKey;
         public static string ImageConversionApiKey
             => imageConversionApiKey

@@ -1,6 +1,6 @@
-using functions.Const;
-using functions.Model;
-using functions.Storage;
+using NetFrameworkWebJob.Const;
+using NetFrameworkWebJob.Model;
+using NetFrameworkWebJob.Storage;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -12,7 +12,7 @@ using System.IO;
 using System.Threading.Tasks;
 using static NetStandardLibraries.Configration.EnvironmentVariables;
 
-namespace functions.Utility
+namespace NetFrameworkWebJob.Utility
 {
     public class StorageUtil
     {
@@ -51,9 +51,11 @@ namespace functions.Utility
 
         public static byte[] GetByteArrayFromStream(Stream sm)
         {
-            using MemoryStream ms = new MemoryStream();
-            sm.CopyTo(ms);
-            return ms.ToArray();
+            using (MemoryStream ms = new MemoryStream())
+            {
+                sm.CopyTo(ms);
+                return ms.ToArray();
+            }
         }
 
         private async ValueTask UploadImageToStorage(
@@ -72,19 +74,28 @@ namespace functions.Utility
             string fileName,
             BlobContainerType containerType = BlobContainerType.Normal)
         {
-            _instance ??= new StorageUtil();
+            if (_instance == null)
+            {
+                _instance = new StorageUtil();
+            }
             await _instance.UploadImageToStorage(
                 buffer, fileName, containerType);
         }
         public static async Task<List<LineMessageEntity>> FetchMassage()
         {
-            _instance ??= new StorageUtil();
+            if (_instance == null)
+            {
+                _instance = new StorageUtil();
+            }
             return await _instance.FetchMassageFromTable();
         }
 
         public static async ValueTask<TableResult> UploadMessageAsync(ITableEntity entity)
         {
-            _instance ??= new StorageUtil();
+            if (_instance == null)
+            {
+                _instance = new StorageUtil();
+            }
             return await _instance.UploadMessageToTableAsync(entity);
         }
 
@@ -115,7 +126,10 @@ namespace functions.Utility
 
         public static async Task InsertQueueAsync(string message)
         {
-            _instance ??= new StorageUtil();
+            if (_instance == null)
+            {
+                _instance = new StorageUtil();
+            }
             await _instance.AddMessageToQueueAsync(message);
         }
 

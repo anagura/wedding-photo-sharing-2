@@ -1,8 +1,8 @@
-﻿using functions.Extension;
+﻿using NetStandardLibraries.Extension;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace functions.TextTemplates
+namespace NetFrameworkWebJob.TextTemplates
 {
     /// <summary>
     /// テキスト画像テンプレートアクセスクラス
