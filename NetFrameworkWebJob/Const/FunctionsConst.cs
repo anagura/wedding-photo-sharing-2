@@ -1,4 +1,4 @@
-﻿namespace functions.Const
+﻿namespace NetFrameworkWebJob.Const
 {
     /// <summary>
     /// 定数

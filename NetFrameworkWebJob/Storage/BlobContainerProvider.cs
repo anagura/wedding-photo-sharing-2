@@ -1,9 +1,9 @@
-﻿using functions.Const;
+﻿using NetFrameworkWebJob.Const;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System.Collections.Generic;
 using static NetStandardLibraries.Configration.EnvironmentVariables;
 
-namespace functions.Storage
+namespace NetFrameworkWebJob.Storage
 {
     /// <summary>
     /// BlobContainerプロバイダー

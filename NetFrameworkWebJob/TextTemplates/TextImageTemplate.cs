@@ -3,7 +3,7 @@ using RazorEngine.Templating;
 using System.IO;
 using static NetStandardLibraries.Configration.EnvironmentVariables;
 
-namespace functions.TextTemplates
+namespace NetFrameworkWebJob.TextTemplates
 {
     /// <summary>
     /// テキスト画像テンプレート

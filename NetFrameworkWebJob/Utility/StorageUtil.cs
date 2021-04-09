@@ -1,6 +1,6 @@
-using functions.Const;
-using functions.Model;
-using functions.Storage;
+using NetFrameworkWebJob.Const;
+using NetFrameworkWebJob.Model;
+using NetFrameworkWebJob.Storage;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -12,7 +12,7 @@ using System.IO;
 using System.Threading.Tasks;
 using static NetStandardLibraries.Configration.EnvironmentVariables;
 
-namespace functions.Utility
+namespace NetFrameworkWebJob.Utility
 {
     public class StorageUtil
     {

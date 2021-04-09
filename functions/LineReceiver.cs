@@ -1,7 +1,6 @@
 ﻿using functions.Const;
 using functions.Model;
 using functions.Service;
-using functions.TextTemplates;
 using functions.Utility;
 using LineMessaging;
 using Microsoft.AspNetCore.Mvc;

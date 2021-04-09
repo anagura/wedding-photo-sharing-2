@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace functions.Model
+namespace NetFrameworkWebJob.Model
 {
     public class LineResult
     {

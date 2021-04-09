@@ -1,6 +1,6 @@
 ﻿using Microsoft.WindowsAzure.Storage.Table;
 
-namespace functions.Model
+namespace NetFrameworkWebJob.Model
 {
 	public class LineMessageEntity : TableEntity
 	{
